@@ -6,12 +6,13 @@ import {ArrowRight,CheckCircle2,KeyRound,ShieldCheck,Sparkles,UserPlus,LockKeyho
 import toast from 'react-hot-toast';
 
 export default function Login(){
-  const [mode,setMode]=useState('login'),[busy,setBusy]=useState(false),[deps,setDeps]=useState([]);
+  const [mode,setMode]=useState('login'),[busy,setBusy]=useState(false),[deps,setDeps]=useState([]),[depsLoading,setDepsLoading]=useState(false),[depsError,setDepsError]=useState(false);
   const [form,setForm]=useState({name:'',email:'',password:'',role:'employee',department:'',designation:'',phone:''});
   const {login,setUser}=useAuth(),nav=useNavigate();
   useEffect(()=>{
     if(mode!=='register'||form.role!=='employee')return;
-    api.get('/auth/departments').then(r=>setDeps(r.data)).catch(()=>setDeps([]));
+    setDepsLoading(true);setDepsError(false);
+    api.get('/auth/departments').then(r=>setDeps(r.data)).catch(()=>{setDeps([]);setDepsError(true)}).finally(()=>setDepsLoading(false));
   },[mode,form.role]);
   const patch=k=>e=>setForm({...form,[k]:e.target.value});
   const patchRole=e=>setForm({...form,role:e.target.value,department:e.target.value==='admin'?'':form.department});
@@ -59,7 +60,7 @@ export default function Login(){
       {mode!=='reset'&&<label>Password<input type="password" value={form.password} onChange={patch('password')} minLength="8" required/></label>}
       {mode==='register'&&<>
         <label>Register as<select value={form.role} onChange={patchRole}><option value="employee">Employee</option><option value="admin">Admin</option></select></label>
-        {form.role==='employee'&&<label>Department<select value={form.department} onChange={patch('department')} required><option value="">Select department</option>{deps.map(x=><option key={x._id} value={x._id}>{x.name}</option>)}</select></label>}
+        {form.role==='employee'&&<label>Department<select value={form.department} onChange={patch('department')} required><option value="">{depsLoading?'Loading departments...':depsError?'Unable to load departments':deps.length?'Select department':'No active departments available'}</option>{deps.map(x=><option key={x._id} value={x._id}>{x.name}</option>)}</select></label>}
         {form.role==='admin'&&<div className="register-note"><Building2 size={17}/><span>You will create your department after login.</span></div>}
         <label>Designation<input value={form.designation} onChange={patch('designation')} placeholder={form.role==='admin'?'Manager':'Employee'}/></label>
         <label>Phone<input value={form.phone} onChange={patch('phone')}/></label>
