@@ -65,7 +65,7 @@ export default function Login(){
         <label>Phone<input value={form.phone} onChange={patch('phone')}/></label>
       </>}
       <button className="btn primary full" disabled={busy}>{busy?(mode==='register'?'Creating...':mode==='reset'?'Generating...':'Signing in...'):(mode==='register'?'Create account':mode==='reset'?'Generate reset link':'Sign in')}<ArrowRight size={18}/></button>
-      <div className="auth-switch"><button type="button" className={mode==='login'?'active':''} onClick={()=>switchMode('login')}>Sign in</button><button type="button" className={mode==='register'?'active':''} onClick={()=>switchMode('register')}>Register</button><button type="button" className={mode==='reset'?'active':''} onClick={()=>setMode('reset')}>Forgot password</button></div>
+      <div className="auth-switch"><button type="button" className={mode==='register'?'active':''} onClick={()=>switchMode('register')}>Register</button><button type="button" className={mode==='reset'?'active':''} onClick={()=>setMode('reset')}>Forgot password</button></div>
       <div className="login-assurance"><span><Building2 size={15}/>Enterprise workspace</span><span><CheckCircle2 size={15}/>Live operations</span></div>
       {mode==='reset'&&<p className="muted">Already have a token? <Link to="/reset-password">Open reset page</Link></p>}
     </form></section>
