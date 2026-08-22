@@ -1,0 +1,5 @@
+import jwt from 'jsonwebtoken';import asyncHandler from 'express-async-handler';import {config} from './config.js';import {User} from './models.js';
+export const signToken=(user)=>jwt.sign({sub:user._id,role:user.role},config.jwt,{expiresIn:config.expires});
+export const protect=asyncHandler(async(req,res,next)=>{const raw=req.headers.authorization||'';const token=raw.startsWith('Bearer ')?raw.slice(7):null;if(!token){res.status(401);throw new Error('Authentication required')}const payload=jwt.verify(token,config.jwt);const user=await User.findById(payload.sub).populate('department','name code status');if(!user||user.status!=='active'){res.status(401);throw new Error('Account unavailable')}req.user=user;next()});
+export const allow=(...roles)=>(req,res,next)=>roles.includes(req.user.role)?next():res.status(403).json({message:'You do not have permission for this action'});
+export const scopeFilter=(req)=>req.user.role==='superadmin'?{}:{department:req.user.department?._id||req.user.department};
