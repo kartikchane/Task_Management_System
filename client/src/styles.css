@@ -359,6 +359,65 @@ td{background:#fff}tr:hover td{background:#fbfdff}
   .task-card{min-height:158px}
   .modal-backdrop{padding:8px}
   .modal{border-radius:10px;max-height:94vh}
-  .login-hero{padding:18px 16px}
+  .login-hero{min-height:178px;padding:24px 18px 22px;display:block}
+  .login-hero .brand.light{margin-bottom:18px}
+  .login-hero h1{line-height:1.12;margin:0 0 9px}
+  .login-hero p{line-height:1.45;margin:0;max-width:320px}
   .login-card{border-radius:10px}
+}
+
+/* Final mobile layout pass */
+@media(max-width:900px){
+  header{position:sticky;top:0;z-index:15}
+  header>div:first-of-type{min-width:0}
+  header h2{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:52vw}
+  .header-actions{gap:6px;min-width:0}
+  .header-actions .icon{width:40px;height:40px}
+  .profile-chip{min-width:40px;width:40px;justify-content:center;padding:0}
+  .page-head>div:first-child,.welcome>div:first-child{min-width:0}
+  .page-head h1,.welcome h1{overflow-wrap:anywhere}
+  .page-head .actions{width:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .page-head .actions .btn{min-width:0;padding-inline:8px;justify-content:center}
+  .section-head{align-items:flex-start;flex-wrap:wrap;padding:16px}
+  .section-head>div{min-width:0;flex:1 1 220px}
+  .section-head h3{margin-top:0}
+  .section-head p{line-height:1.45}
+  .command-item,.team-metrics a{min-width:0;padding:15px}
+  .command-item b,.team-metrics b{font-size:24px}
+  .person b,.person span{max-width:150px}
+  .table-wrap{overflow-x:auto;overscroll-behavior-x:contain}
+  .table-wrap table{min-width:680px}
+  .team-table{overflow-x:auto;overscroll-behavior-x:contain}
+  .toolbar{width:100%}
+  .toolbar>span{line-height:1.4}
+  .card{min-width:0}
+}
+@media(max-width:640px){
+  header{min-height:64px;gap:8px}
+  header h2{max-width:46vw;font-size:16px}
+  header .eyebrow{display:none}
+  .header-actions .notif-button{display:grid}
+  .page-head,.welcome{margin-bottom:18px}
+  .page-head h1,.welcome h1{font-size:26px}
+  .page-head p,.welcome p{font-size:14px}
+  .page-head .actions{grid-template-columns:1fr 1fr 1fr}
+  .page-head .actions .btn{font-size:12px;min-height:40px}
+  .notice{padding:13px}
+  .notice .btn{width:100%;margin-top:8px}
+  .section-head a{font-size:12px;white-space:nowrap}
+  .command-item{min-height:82px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px}
+  .command-item svg{width:20px}
+  .command-item span{font-size:12px}
+  .command-item b{font-size:22px}
+  .insight-alert{grid-template-columns:auto 1fr auto}
+  .approval-item{padding:14px 16px}
+  .approval-actions{display:grid;grid-template-columns:1fr 1fr}
+  .approval-actions .btn{width:100%}
+  .form-actions{gap:8px}
+  .form-actions .btn{min-width:0}
+  .date-chip{justify-content:center;font-size:13px}
+  .daily-hero{padding:16px}
+  .scorecard{padding:16px}
+  .score-hero{padding:16px}
+  .login-hero h1{font-size:26px}
 }
