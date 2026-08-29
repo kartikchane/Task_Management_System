@@ -29,7 +29,7 @@ export const schemas={
   otpSend:z.object({phone:z.string().trim().min(10)}),
   otpVerify:z.object({phone:z.string().trim().min(10),otp:z.string().trim().regex(/^\d{4,8}$/,'Invalid OTP')}),
   reset:z.object({token:trimmed,password:z.string().min(8)}),
-  register:z.object({name:trimmed,email:z.string().email(),password:z.string().min(8),role:z.enum(['admin','employee']),department:objectId.optional().or(z.literal('')),designation:z.string().trim().optional(),phone:z.string().trim().optional()}),
+  register:z.object({name:trimmed,email:z.string().email().optional().or(z.literal('')),password:z.string().min(8),role:z.enum(['admin','employee']),department:objectId.optional().or(z.literal('')),designation:z.string().trim().optional(),phone:z.string().trim().optional()}).refine(x=>(x.email&&x.email.trim())||(x.phone&&x.phone.trim()),{message:'Email or phone number is required'}),
   leave:z.object({type:z.enum(['casual','sick','earned','unpaid','other']).optional(),fromDate:dateString,toDate:dateString,reason:trimmed.max(1000)}).refine(x=>x.toDate>=x.fromDate,{message:'To date must be after or same as from date'}),
   leaveReview:z.object({decision:z.enum(['approved','rejected']),note:z.string().trim().optional()}),
   dailyTemplate:z.object({title:trimmed,description:z.string().trim().optional(),department:objectId,assigneeMode:z.enum(['department','selected']).optional(),employees:z.array(objectId).optional(),checklist:z.array(z.string().trim()).optional(),workingDays:z.array(z.coerce.number().min(0).max(6)).optional(),dueHour:z.coerce.number().min(0).max(23).optional(),active:z.boolean().optional()}),

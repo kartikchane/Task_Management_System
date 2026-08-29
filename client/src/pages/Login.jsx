@@ -55,6 +55,7 @@ export default function Login(){
       <h2>{mode==='register'?'Create account':mode==='reset'?'Reset password':'Welcome back'}</h2>
       <p>{mode==='register'?'Admins create their own department after signup. Employees join an existing department.':mode==='reset'?'Enter your account email to generate a reset link.':'Sign in with your registered mobile number and password'}</p>
       {mode==='register'&&<label>Full name<input value={form.name} onChange={patch('name')} required/></label>}
+      {mode==='register'&&<label>Email (या phone)<input type="email" value={form.email} onChange={patch('email')} placeholder="Optional if you provide phone"/></label>}
       {mode==='login'&&<label>Email or mobile number<input type="text" value={form.phone} onChange={patch('phone')} placeholder="Email or 10 digit mobile number" required/></label>}
       {mode==='reset'&&<label>Email<input type="email" value={form.email} onChange={patch('email')} required/></label>}
       {mode!=='reset'&&<label>Password<input type="password" value={form.password} onChange={patch('password')} minLength="8" required/></label>}
@@ -63,7 +64,7 @@ export default function Login(){
         {form.role==='employee'&&<label>Department<select value={form.department} onChange={patch('department')} required><option value="">{depsLoading?'Loading departments...':depsError?'Unable to load departments':deps.length?'Select department':'No active departments available'}</option>{deps.map(x=><option key={x._id} value={x._id}>{x.name}</option>)}</select></label>}
         {form.role==='admin'&&<div className="register-note"><Building2 size={17}/><span>You will create your department after login.</span></div>}
         <label>Designation<input value={form.designation} onChange={patch('designation')} placeholder={form.role==='admin'?'Manager':'Employee'}/></label>
-        <label>Phone<input value={form.phone} onChange={patch('phone')}/></label>
+        <label>Phone (या email)<input value={form.phone} onChange={patch('phone')} placeholder="Optional if you provide email"/></label>
       </>}
       <button className="btn primary full" disabled={busy}>{busy?(mode==='register'?'Creating...':mode==='reset'?'Generating...':'Signing in...'):(mode==='register'?'Create account':mode==='reset'?'Generate reset link':'Sign in')}<ArrowRight size={18}/></button>
       <div className="auth-switch">{mode==='register'&&<button type="button" onClick={()=>switchMode('login')}>Back to sign in</button>}<button type="button" className={mode==='register'?'active':''} onClick={()=>switchMode('register')}>Register</button><button type="button" className={mode==='reset'?'active':''} onClick={()=>setMode('reset')}>Forgot password</button></div>
