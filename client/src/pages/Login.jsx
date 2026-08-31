@@ -52,7 +52,7 @@ export default function Login(){
     }
   };
   return <div className="login-page">
-    <section className="login-hero"><div className="brand light"><img className="brand-logo" src="/gauri-aqua-plast-logo.svg" alt="Gauri Aqua Plast"/><b>Ganesh Gauri Industries</b></div><div><span className="pill"><Sparkles size={15}/> Modern workforce operations</span><h1>Plan work.<br/>Deliver faster.<br/>Lead with clarity.</h1><p>One secure workspace for departments, projects, tasks, approvals and live operational insight.</p><div className="hero-points"><span><CheckCircle2/>Role-based access</span><span><CheckCircle2/>Real-time updates</span><span><CheckCircle2/>Complete audit trail</span></div></div><small>Ganesh Gauri Industries - Secure by design</small></section>
+    <section className="login-hero"><div className="brand light"><img className="brand-logo" src="/gauri-aqua-plast-logo.svg" alt="Gauri Aqua Plast"/><b>Ganesh Gouri Industries</b></div><div><span className="pill"><Sparkles size={15}/> Modern workforce operations</span><h1>Plan work.<br/>Deliver faster.<br/>Lead with clarity.</h1><p>One secure workspace for departments, projects, tasks, approvals and live operational insight.</p><div className="hero-points"><span><CheckCircle2/>Role-based access</span><span><CheckCircle2/>Real-time updates</span><span><CheckCircle2/>Complete audit trail</span></div></div><small>Ganesh Gouri Industries - Design By Kartik</small></section>
     <section className="login-panel"><form className="login-card" onSubmit={submit}>
       <div className="login-card-top">
         <div className="login-icon">{mode==='register'?<UserPlus/>:mode==='reset'?<KeyRound/>:<ShieldCheck/>}</div>

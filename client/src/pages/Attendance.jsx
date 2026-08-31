@@ -70,9 +70,9 @@ function ManagerAttendance(){
     leave:rows.filter(x=>x.status==='leave').length,
     total:rows.length
   }),[rows]);
-  const mark=async(row,status)=>{
+  const mark=async(row,status,note=row.note||'')=>{
     try{
-      const {data}=await api.patch('/attendance/'+row._id,{status,note:row.note||''});
+      const {data}=await api.patch('/attendance/'+row._id,{status,note});
       setRows(rows.map(x=>x._id===row._id?data:x));
       toast.success('Attendance status updated');
     }catch(e){
@@ -92,7 +92,7 @@ function ManagerAttendance(){
       <input type="date" value={date} onChange={e=>setDate(e.target.value)}/>
       <Button onClick={load}><RefreshCw/>Refresh</Button>
     </div>
-    {loading?<Skeleton/>:error?<Empty title="Unable to load attendance" text={error}/>:rows.length?<div className="table-wrap card"><table><thead><tr><th>Employee</th><th>Date</th><th>Check in</th><th>Check out</th><th>Worked</th><th>Status</th><th>Manager action</th></tr></thead><tbody>{rows.map(x=><tr key={x._id}><td><div className="person"><div className="avatar">{x.employee?.name?.[0]||'?'}</div><div><b>{x.employee?.name||'Unknown employee'}</b><span>{x.employee?.designation||x.employee?.email||'Employee'}</span></div></div></td><td>{x.date}</td><td>{x.checkIn?new Date(x.checkIn).toLocaleTimeString('en-IN'):'-'}</td><td>{x.checkOut?new Date(x.checkOut).toLocaleTimeString('en-IN'):'-'}</td><td>{x.workedMinutes||0} min</td><td><Badge tone={tones[x.status]}>{x.status}</Badge></td><td><select className="inline-select" value={x.status} onChange={e=>mark(x,e.target.value)}><option value="present">Present</option><option value="late">Late</option><option value="half-day">Half day</option><option value="absent">Absent</option><option value="leave">Leave</option><option value="holiday">Holiday</option></select></td></tr>)}</tbody></table></div>:<Empty title="No attendance records" text="No employees have checked in for this date yet."/>}
+    {loading?<Skeleton/>:error?<Empty title="Unable to load attendance" text={error}/>:rows.length?<div className="table-wrap card"><table><thead><tr><th>Employee</th><th>Date</th><th>Check in</th><th>Check out</th><th>Worked</th><th>Status</th><th>Remarks</th><th>Manager action</th></tr></thead><tbody>{rows.map(x=><tr key={x._id}><td><div className="person"><div className="avatar">{x.employee?.name?.[0]||'?'}</div><div><b>{x.employee?.name||'Unknown employee'}</b><span>{x.employee?.designation||x.employee?.email||'Employee'}</span></div></div></td><td>{x.date}</td><td>{x.checkIn?new Date(x.checkIn).toLocaleTimeString('en-IN'):'-'}</td><td>{x.checkOut?new Date(x.checkOut).toLocaleTimeString('en-IN'):'-'}</td><td>{x.workedMinutes||0} min</td><td><Badge tone={tones[x.status]}>{x.status}</Badge></td><td><input className="inline-input" defaultValue={x.note||''} placeholder="Manager remark" onBlur={e=>{if(e.target.value!==(x.note||''))mark(x,x.status,e.target.value)}}/></td><td><select className="inline-select" value={x.status} onChange={e=>mark(x,e.target.value)}><option value="present">Present</option><option value="late">Late</option><option value="half-day">Half day</option><option value="absent">Absent</option><option value="leave">Leave</option><option value="holiday">Holiday</option></select></td></tr>)}</tbody></table></div>:<Empty title="No attendance records" text="No employees have checked in for this date yet."/>}
   </>;
 }
 

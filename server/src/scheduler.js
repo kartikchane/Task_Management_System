@@ -10,14 +10,14 @@ async function notifyOnce(io,recipient,data){
 }
 export function startScheduler(io){
   cron.schedule('0 9 * * *',async()=>{
-    const target=iso(), day=new Date().getDay();
+    const target=iso(), now=new Date(), day=now.getDay(), monthDay=now.getDate();
     if(await Holiday.exists({date:target})) return;
-    const templates=await DailyTaskTemplate.find({active:true,workingDays:day});
+    const templates=await DailyTaskTemplate.find({active:true,$or:[{cadence:'daily',workingDays:day},{cadence:'weekly',workingDays:day},{cadence:'monthly',monthlyDay:monthDay},{cadence:{$exists:false},workingDays:day}]});
     for(const t of templates){
       const users=t.assigneeMode==='selected'?await User.find({_id:{$in:t.employees},status:'active'}):await User.find({department:t.department,role:'employee',status:'active'});
       for(const u of users){
         if(await Leave.exists({employee:u._id,status:'approved',fromDate:{$lte:target},toDate:{$gte:target}})) continue;
-        await DailyWork.findOneAndUpdate({employee:u._id,date:target},{$setOnInsert:{department:u.department,generatedTasks:[{template:t._id,title:t.title}]}},{upsert:true});
+        await DailyWork.findOneAndUpdate({employee:u._id,date:target},{$setOnInsert:{department:u.department},$addToSet:{generatedTasks:{template:t._id,title:t.title}}},{upsert:true});
       }
     }
     io.emit('daily-work:generated',{date:target});
@@ -30,7 +30,7 @@ export function startScheduler(io){
   },{timezone:process.env.TZ||'Asia/Kolkata'});
   cron.schedule('0 10 * * 1-6',async()=>{
     const today=iso(), start=new Date(today+'T00:00:00'), end=new Date(today+'T23:59:59');
-    const tasks=await Task.find({dueDate:{$lte:end},status:{$nin:['approved','rejected','cancelled']}}).select('title dueDate assignedTo').populate('assignedTo','name manager status').lean();
+    const tasks=await Task.find({dueDate:{$lte:end},status:{$nin:['completed','not-applicable']}}).select('title dueDate assignedTo').populate('assignedTo','name manager status').lean();
     const managerCounts=new Map();
     for(const t of tasks){if(!t.assignedTo||t.assignedTo.status!=='active')continue;const overdue=new Date(t.dueDate)<start;await notifyOnce(io,t.assignedTo._id,{type:'task-reminder',title:overdue?'Task overdue':'Task due today',message:t.title,link:'/tasks'});if(t.assignedTo.manager)managerCounts.set(String(t.assignedTo.manager),(managerCounts.get(String(t.assignedTo.manager))||0)+1)}
     for(const [manager,count] of managerCounts)await notifyOnce(io,manager,{type:'team-task-reminder',title:'Team task attention needed',message:`${count} team task${count>1?'s need':' needs'} attention today.`,link:'/tasks'});

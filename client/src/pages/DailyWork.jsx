@@ -21,12 +21,14 @@ function EmployeeDaily(){
   if(!row)return <Skeleton/>;
   const locked=['submitted','approved'].includes(row.status);
   const save=async()=>{const {data}=await api.patch('/daily-work/today',{progress:row.progress,workSummary:row.workSummary,blockers:row.blockers,tomorrowPlan:row.tomorrowPlan});setRow(data);toast.success('Daily progress saved')};
+  const toggleFixedTask=async(task,done)=>{try{const {data}=await api.patch('/daily-work/today/generated-tasks/'+task._id,{done});setRow(data);toast.success(done?'Fixed task completed':'Fixed task reopened')}catch(e){toast.error(e.response?.data?.message||'Unable to update fixed task')}};
   const submit=async()=>{if(!row.workSummary?.trim())return toast.error('Please add today’s work summary');const {data}=await api.post('/daily-work/today/submit',{workSummary:row.workSummary,blockers:row.blockers,tomorrowPlan:row.tomorrowPlan,submissionNote:row.submissionNote});setRow(data);toast.success('Daily update submitted to manager')};
   return <>
     <div className="page-head"><div><h1>Daily Work Update</h1><p>Your fixed daily responsibility. Update progress and submit it before the working day ends.</p></div><div className="date-chip"><CalendarDays/>{new Date().toLocaleDateString('en-IN',{weekday:'long',day:'2-digit',month:'long',year:'numeric'})}</div></div>
     <div className="daily-hero card"><div><span className="eyebrow">Today’s fixed task</span><h2>Daily work reporting and progress update</h2><p>Record completed work, blockers and the next-day plan. This update is visible to your Manager and Super Admin.</p></div><Badge tone={tone[row.status]}>{row.status.replace('-',' ')}</Badge></div>
     {row.status==='rework'&&<div className="notice warning"><AlertCircle/><div><b>Manager requested changes</b><p>{row.reviewNote||'Please update and submit again.'}</p></div></div>}
     {row.status==='approved'&&<div className="notice success"><CheckCircle2/><div><b>Daily update approved</b><p>Your manager has reviewed today’s work update.</p></div></div>}
+    {row.generatedTasks?.length>0&&<section className="card daily-form"><div className="section-head"><div><h3>Fixed recurring tasks</h3><p>Complete each assigned daily, weekly or monthly responsibility.</p></div><strong>{row.generatedTasks.filter(x=>x.done).length}/{row.generatedTasks.length}</strong></div><div className="stack-fields">{row.generatedTasks.map(task=><label className="row" key={task._id}><input type="checkbox" checked={task.done} disabled={locked} onChange={e=>toggleFixedTask(task,e.target.checked)}/><span>{task.title}</span></label>)}</div></section>}
     <section className="card daily-form">
       <div className="section-head"><div><h3>Progress</h3><p>Keep this updated during the day.</p></div><strong>{row.progress||0}%</strong></div>
       <input className="range-large" type="range" min="0" max="100" value={row.progress||0} disabled={locked} onChange={e=>setRow({...row,progress:Number(e.target.value)})}/>

@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 export default function DailyTemplates(){
   const [rows,setRows]=useState([]),[deps,setDeps]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
-  const [f,setF]=useState({title:'',department:'',description:'',workingDays:[1,2,3,4,5,6]});
+  const [f,setF]=useState({title:'',department:'',description:'',cadence:'daily',workingDays:[1,2,3,4,5,6],monthlyDay:1});
   const load=useCallback(()=>{
     setLoading(true);setError('');
     return Promise.all([api.get('/daily-templates'),api.get('/departments')]).then(([a,b])=>{
@@ -39,16 +39,18 @@ export default function DailyTemplates(){
     }
   };
   return <>
-    <div className="page-head"><div><h1>Daily Task Templates</h1><p>Automatically generate mandatory daily work.</p></div><Button onClick={generate}><CalendarCheck2/>Generate Today</Button></div>
+    <div className="page-head"><div><h1>Recurring Task Templates</h1><p>Automatically generate fixed daily, weekly and monthly work.</p></div><Button onClick={generate}><CalendarCheck2/>Generate Today</Button></div>
     <form className="card daily-form" onSubmit={submit}>
       <div className="form-grid two">
         <Field label="Title"><input required value={f.title} onChange={e=>setF({...f,title:e.target.value})}/></Field>
         <Field label="Department"><select required value={f.department} onChange={e=>setF({...f,department:e.target.value})}><option value="">Select department</option>{deps.map(x=><option key={x._id} value={x._id}>{x.name}</option>)}</select></Field>
+        <Field label="Frequency"><select value={f.cadence} onChange={e=>setF({...f,cadence:e.target.value})}><option value="daily">Daily</option><option value="weekly">Weekly</option><option value="monthly">Monthly</option></select></Field>
+        {f.cadence==='monthly'?<Field label="Day of month"><input type="number" min="1" max="31" value={f.monthlyDay} onChange={e=>setF({...f,monthlyDay:Number(e.target.value)})}/></Field>:<Field label={f.cadence==='weekly'?'Weekday':'Working days'}><select multiple value={f.workingDays} onChange={e=>setF({...f,workingDays:[...e.target.selectedOptions].map(x=>Number(x.value))})}>{['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map((x,i)=><option value={i} key={i}>{x}</option>)}</select></Field>}
         <Field label="Description"><textarea value={f.description} onChange={e=>setF({...f,description:e.target.value})}/></Field>
       </div>
       <div className="form-actions"><Button variant="primary"><Save/>Create Template</Button></div>
     </form>
     <div className="toolbar card"><span>{rows.length} template{rows.length===1?'':'s'}</span><Button onClick={load}><RefreshCw/>Refresh</Button></div>
-    {loading?<Skeleton/>:error?<Empty title="Unable to load templates" text={error}/>:rows.length?<div className="grid cols-3">{rows.map(x=><article className="card project-card" key={x._id}><div className="project-top"><div className="project-icon"><CalendarCheck2/></div><Badge tone={x.active?'green':'muted'}>{x.active?'Active':'Inactive'}</Badge></div><h3>{x.title}</h3><p>{x.description||'No description'}</p><div className="project-footer"><span>{x.department?.name||'No department'}</span><b>{x.assigneeMode||'department'}</b></div></article>)}</div>:<Empty title="No daily templates" text="Create a reusable daily task template to start automatic daily work generation."/>}
+    {loading?<Skeleton/>:error?<Empty title="Unable to load templates" text={error}/>:rows.length?<div className="grid cols-3">{rows.map(x=><article className="card project-card" key={x._id}><div className="project-top"><div className="project-icon"><CalendarCheck2/></div><Badge tone={x.active?'green':'muted'}>{x.active?'Active':'Inactive'}</Badge></div><h3>{x.title}</h3><p>{x.description||'No description'}</p><div className="project-footer"><span>{x.department?.name||'No department'}</span><b>{x.cadence||'daily'}</b></div></article>)}</div>:<Empty title="No recurring templates" text="Create a daily, weekly or monthly template to start automatic work generation."/>}
   </>;
 }

@@ -7,7 +7,7 @@ import {useRefresh} from '../hooks';
 import {useAuth} from '../context';
 import toast from 'react-hot-toast';
 
-const statuses=['todo','in-progress','submitted','approved','rework','rejected','cancelled'];
+const statuses=['completed','in-progress','pending','overdue','not-applicable'];
 
 export default function Reports(){
   const {user}=useAuth();
