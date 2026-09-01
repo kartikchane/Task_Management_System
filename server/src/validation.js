@@ -35,5 +35,9 @@ export const schemas={
   dailyTemplate:z.object({title:trimmed,description:z.string().trim().optional(),department:objectId,cadence:z.enum(['daily','weekly','monthly']).optional(),assigneeMode:z.enum(['department','selected']).optional(),employees:z.array(objectId).optional(),checklist:z.array(z.string().trim()).optional(),workingDays:z.array(z.coerce.number().min(0).max(6)).optional(),monthlyDay:z.coerce.number().min(1).max(31).optional(),dueHour:z.coerce.number().min(0).max(23).optional(),active:z.boolean().optional()}),
   dailyWork:z.object({progress:z.coerce.number().min(0).max(100).optional(),workSummary:z.string().trim().optional(),blockers:z.string().trim().optional(),tomorrowPlan:z.string().trim().optional()}),
   dailySubmit:z.object({workSummary:trimmed.max(4000),blockers:z.string().trim().optional(),tomorrowPlan:z.string().trim().optional(),submissionNote:z.string().trim().optional()}),
+  dailyTaskAssign:z.object({employeeId:objectId,date:dateString,title:trimmed,description:z.string().trim().optional(),dueTime:z.string().regex(/^\d{2}:\d{2}$/).optional(),priority:z.enum(['low','medium','high','critical']).optional()}),
+  dailyTaskProgress:z.object({progress:z.coerce.number().min(0).max(100)}),
+  dailyTaskSubmit:z.object({note:z.string().trim().optional()}),
+  dailyTaskReview:z.object({decision:z.enum(['approved','rework']),note:z.string().trim().optional()}),
   settings:z.record(z.any())
 };
