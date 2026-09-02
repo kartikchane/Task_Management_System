@@ -1,8 +1,9 @@
-import {NavLink,Outlet,useLocation} from 'react-router-dom';
-import {LayoutDashboard,Building2,Users,FolderKanban,ListTodo,CalendarCheck2,CalendarDays,Clock3,Plane,ClipboardList,ClipboardCheck,ShieldCheck,BarChart3,Bell,Settings,LogOut,Menu,X,UserCircle,Search} from 'lucide-react';
+import {NavLink,Outlet,useLocation,useNavigate} from 'react-router-dom';
+import {LayoutDashboard,Building2,Users,FolderKanban,ListTodo,CalendarCheck2,CalendarDays,Clock3,Plane,ClipboardList,ClipboardCheck,ShieldCheck,BarChart3,Bell,Settings,LogOut,Menu,X,UserCircle,Search,ClipboardEdit} from 'lucide-react';
 import {useAuth} from '../context';
-import {useCallback,useEffect,useState} from 'react';
+import {useCallback,useEffect,useRef,useState} from 'react';
 import api from '../api';
+import {Modal,Badge,Button} from './UI';
 
 const links=[
   ['/','Dashboard',LayoutDashboard],
@@ -24,16 +25,38 @@ const links=[
 
 export default function Layout(){
   const {user,logout}=useAuth();
+  const navigate=useNavigate();
   const [open,setOpen]=useState(false);
   const [unread,setUnread]=useState(0);
+  const [assignPopup,setAssignPopup]=useState([]);
+  const seenIds=useRef(new Set());
   const location=useLocation();
   const title=links.find(x=>x[0]===location.pathname)?.[1]||'Ganesh Gauri Industries';
-  const loadUnread=useCallback(()=>api.get('/notifications').then(({data})=>setUnread(data.filter(x=>!x.read).length)).catch(()=>{}),[]);
+  const loadUnread=useCallback(()=>Promise.all([
+    api.get('/notifications').then(({data})=>setUnread(data.filter(x=>!x.read).length)),
+    api.get('/notifications/pending-assignments').then(({data})=>{
+      const fresh=data.filter(x=>!seenIds.current.has(x._id));
+      if(fresh.length){
+        fresh.forEach(x=>seenIds.current.add(x._id));
+        setAssignPopup(prev=>[...fresh,...prev]);
+      }
+    }),
+  ]).catch(err=>console.error('Failed to load notifications',err)),[]);
   useEffect(()=>{
     loadUnread();
     window.addEventListener('tf-refresh',loadUnread);
     return()=>window.removeEventListener('tf-refresh',loadUnread);
   },[loadUnread]);
+  const dismissAssignPopup=()=>{
+    const ids=assignPopup.map(x=>x._id);
+    setAssignPopup([]);
+    Promise.all(ids.map(id=>api.patch('/notifications/'+id+'/read'))).then(loadUnread).catch(()=>{});
+  };
+  const openAssignItem=x=>{
+    setAssignPopup(prev=>prev.filter(y=>y._id!==x._id));
+    api.patch('/notifications/'+x._id+'/read').then(loadUnread).catch(()=>{});
+    navigate(x.link||'/notifications');
+  };
   return <div className="app-shell">
     {open&&<button className="shell-backdrop mobile" aria-label="Close menu" onClick={()=>setOpen(false)}/>}
     <aside className={'sidebar '+(open?'open':'')}>
@@ -63,5 +86,28 @@ export default function Layout(){
       </header>
       <div className="page"><Outlet/></div>
     </main>
+    {assignPopup.length>0&&(
+      <Modal title="Tasks needing your attention" onClose={dismissAssignPopup}>
+        <div className="form-grid">
+          <p className="muted">You have {assignPopup.length} item{assignPopup.length>1?'s':''} that need action.</p>
+          <div className="stack-fields">
+            {assignPopup.map(x=>(
+              <article key={x._id} className="task-card" onClick={()=>openAssignItem(x)}>
+                <div className="row wrap">
+                  <Badge tone={x.type.startsWith('daily')?'purple':'blue'}>{x.type.startsWith('daily')?'Daily Work':'Additional Task'}</Badge>
+                  {x.type.endsWith('rework')&&<Badge tone="orange">Needs changes</Badge>}
+                </div>
+                <h3>{x.title}</h3>
+                <p>{x.message}</p>
+              </article>
+            ))}
+          </div>
+          <div className="form-actions">
+            <Button variant="primary full" onClick={dismissAssignPopup}><ClipboardEdit/>Got it, close for now</Button>
+          </div>
+          <p className="muted" style={{fontSize:'.8rem',textAlign:'center'}}>This will keep showing on login until the task is submitted.</p>
+        </div>
+      </Modal>
+    )}
   </div>;
 }

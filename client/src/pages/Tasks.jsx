@@ -25,10 +25,12 @@ const tones = {
   pending: "orange",
   overdue: "red",
   "not-applicable": "muted",
+  submitted: "purple",
 };
 const columns = [
   "pending",
   "in-progress",
+  "submitted",
   "completed",
   "overdue",
   "not-applicable",
@@ -124,7 +126,7 @@ export default function Tasks() {
   const canEditProgress =
     user.role === "employee" &&
     selected &&
-    !["completed", "not-applicable"].includes(selected.status);
+    !["completed", "not-applicable", "submitted"].includes(selected.status);
   const comment = async (e) => {
     e.preventDefault();
     const text = e.target.text.value;
@@ -144,23 +146,34 @@ export default function Tasks() {
       await api.post("/tasks/" + selected._id + "/submit", {
         note: e.target.note.value,
       });
-      toast.success("Task marked completed");
+      toast.success("Task submitted for review");
       setSelected(null);
       load();
     } catch (e) {
       toast.error(e.response?.data?.message || "Unable to submit task");
     }
   };
-  const review = async (decision, e) => {
-    e.preventDefault();
-    const fd = Object.fromEntries(new FormData(e.target));
+  const review = async (decision, form) => {
+    const fd = Object.fromEntries(new FormData(form));
     try {
       await api.post("/tasks/" + selected._id + "/review", { ...fd, decision });
-      toast.success("Task status updated");
+      toast.success(decision === "approved" ? "Task approved" : "Rework requested");
       setSelected(null);
       load();
     } catch (e) {
       toast.error(e.response?.data?.message || "Unable to review task");
+    }
+  };
+  const updateStatus = async (e) => {
+    e.preventDefault();
+    const fd = Object.fromEntries(new FormData(e.target));
+    try {
+      await api.patch("/tasks/" + selected._id, { status: fd.status });
+      toast.success("Task status updated");
+      setSelected(null);
+      load();
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Unable to update task status");
     }
   };
   const attach = async (e) => {
@@ -313,9 +326,9 @@ export default function Tasks() {
             <Field label="Task title">
               <input name="title" required />
             </Field>
-            <Field label="Project">
-              <select name="project" required>
-                <option value="">Select project</option>
+            <Field label="Project (optional)">
+              <select name="project">
+                <option value="">No project</option>
                 {projects.map((x) => (
                   <option key={x._id} value={x._id}>
                     {x.name}
@@ -476,7 +489,7 @@ export default function Tasks() {
               <h4>Task information</h4>
               <dl>
                 <dt>Project</dt>
-                <dd>{selected.project?.name}</dd>
+                <dd>{selected.project?.name || "No project"}</dd>
                 <dt>Assigned to</dt>
                 <dd>{selected.assignedTo?.name}</dd>
                 <dt>Assigned by</dt>
@@ -484,36 +497,63 @@ export default function Tasks() {
                 <dt>Attachments</dt>
                 <dd>{selected.attachments?.length || 0} file(s)</dd>
               </dl>
-              <label className="upload">
-                <Upload />
-                Upload attachment
-                <input type="file" onChange={attach} />
-              </label>
               {user.role === "employee" &&
-                !["completed", "not-applicable"].includes(selected.status) && (
+                !["completed", "not-applicable", "submitted"].includes(selected.status) && (
+                  <label className="upload">
+                    <Upload />
+                    Upload attachment
+                    <input type="file" onChange={attach} />
+                  </label>
+                )}
+              {user.role === "employee" &&
+                !["completed", "not-applicable", "submitted"].includes(selected.status) && (
                   <form onSubmit={submit} className="review-box">
                     <textarea
                       name="note"
-                      placeholder="Completion remark (required only when selected)"
+                      placeholder="Submission note for your manager (optional)"
                     />
                     <Button variant="primary full">
                       <CheckCircle2 />
-                      Mark completed
+                      Submit for review
                     </Button>
                   </form>
                 )}
-              {user.role !== "employee" && (
-                <form
-                  className="review-box"
-                  onSubmit={(e) => review(e.target.status.value, e)}
-                >
-                  <textarea name="note" placeholder="Manager comment" />
+              {user.role === "employee" && selected.status === "submitted" && (
+                <div className="notice">
+                  <p>Waiting for your manager to review this task.</p>
+                </div>
+              )}
+              {user.role !== "employee" && selected.status === "submitted" && (
+                <form className="review-box" onSubmit={(e) => { e.preventDefault(); review("approved", e.target); }}>
+                  <textarea name="note" placeholder="Feedback for employee" />
+                  <div className="form-grid two" style={{ padding: 0 }}>
+                    <input name="quality" type="number" min="0" max="5" placeholder="Quality (0-5)" />
+                    <input name="rating" type="number" min="0" max="5" placeholder="Rating (0-5)" />
+                  </div>
+                  <Button variant="primary full">
+                    <CheckCircle2 />
+                    Approve task
+                  </Button>
+                  <Button
+                    type="button"
+                    className="btn orange full"
+                    onClick={(e) => review("rework", e.currentTarget.form)}
+                  >
+                    <RotateCcw />
+                    Request changes
+                  </Button>
+                </form>
+              )}
+              {user.role !== "employee" && selected.status !== "submitted" && (
+                <form className="review-box" onSubmit={updateStatus}>
                   <select name="status" defaultValue={selected.status}>
-                    {columns.map((s) => (
-                      <option key={s} value={s}>
-                        {s.replaceAll("-", " ")}
-                      </option>
-                    ))}
+                    {columns
+                      .filter((s) => s !== "submitted")
+                      .map((s) => (
+                        <option key={s} value={s}>
+                          {s.replaceAll("-", " ")}
+                        </option>
+                      ))}
                   </select>
                   <Button variant="primary full">
                     <CheckCircle2 />
