@@ -1,5 +1,7 @@
 import {v2 as cloudinary} from 'cloudinary';
 import {Readable} from 'stream';
+import path from 'path';
+import crypto from 'crypto';
 import {config} from './config.js';
 
 const isCloudinaryConfigured=Boolean(config.cloudinary.cloudName&&config.cloudinary.apiKey&&config.cloudinary.apiSecret);
@@ -18,7 +20,13 @@ function resourceTypeFor(mime){
 
 export const uploadAttachment=file=>new Promise((resolve,reject)=>{
   if(!isCloudinaryConfigured){return reject(new Error('Cloudinary is not configured'))}
-  const stream=cloudinary.uploader.upload_stream({folder:'taskflow/attachments',resource_type:resourceTypeFor(file.mimetype)},(error,result)=>{
+  const ext=path.extname(file.originalname||'');
+  const base=path.basename(file.originalname||'file',ext).replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,60)||'file';
+  // Baking the extension into public_id makes Cloudinary's delivery URL end in
+  // e.g. ".pdf", so it serves with the right Content-Type and browsers preview
+  // it inline instead of defaulting to a forced download.
+  const publicId=`${base}-${crypto.randomBytes(6).toString('hex')}${ext}`;
+  const stream=cloudinary.uploader.upload_stream({folder:'taskflow/attachments',resource_type:resourceTypeFor(file.mimetype),public_id:publicId},(error,result)=>{
     if(error)return reject(error);
     resolve(result);
   });

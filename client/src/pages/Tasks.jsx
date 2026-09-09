@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import api from "../api";
+import api, { attachmentUrl } from "../api";
 import { useRefresh } from "../hooks";
 import { useAuth } from "../context";
 import { Button, Modal, Field, Badge, Empty, Skeleton } from "../components/UI";
@@ -497,6 +497,15 @@ export default function Tasks() {
                 <dt>Attachments</dt>
                 <dd>{selected.attachments?.length || 0} file(s)</dd>
               </dl>
+              {selected.attachments?.length > 0 && (
+                <div className="stack-fields">
+                  {selected.attachments.map((a) => (
+                    <a key={a._id} href={attachmentUrl(a)} target="_blank" rel="noreferrer" className="btn full">
+                      <Paperclip />{a.name}
+                    </a>
+                  ))}
+                </div>
+              )}
               {user.role === "employee" &&
                 !["completed", "not-applicable", "submitted"].includes(selected.status) && (
                   <label className="upload">

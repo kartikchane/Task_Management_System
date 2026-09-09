@@ -100,18 +100,44 @@ r.get('/audit',allow('superadmin'),asyncHandler(async(req,res)=>res.json(await A
 r.get('/reports/export',allow('superadmin','admin'),asyncHandler(async(req,res)=>{
   const q=req.user.role==='admin'?{employee:{$in:await teamEmployeeIds(req,User)}}:{};
   if(req.user.role==='superadmin'&&req.query.department)q.department=req.query.department;
+  if(req.query.employee)q.employee=req.query.employee;
   if(req.query.from||req.query.to)q.date={...(req.query.from?{$gte:req.query.from}:{}),...(req.query.to?{$lte:req.query.to}:{})};
-  const wb=new ExcelJS.Workbook();
-  const ws=wb.addWorksheet('Daily Tasks');
-  ws.columns=[{header:'Title',key:'title',width:35},{header:'Employee',key:'employee',width:25},{header:'Department',key:'department',width:24},{header:'Status',key:'status',width:15},{header:'Priority',key:'priority',width:15},{header:'Progress',key:'progress',width:12},{header:'Date',key:'date',width:14},{header:'Due Time',key:'due',width:12}];
-  const rows=await DailyWork.find(q).populate('employee','name').populate('department','name').select('employee department date assignedTasks').lean();
+  const rows=await DailyWork.find(q).populate('employee','name').populate('department','name').select('employee department date assignedTasks').sort('date').lean();
+  const lineItems=[];
+  const statusTotals={};
+  const perEmployee=new Map();
   for(const row of rows){
-    if(req.query.status&&!(row.assignedTasks||[]).some(t=>t.status===req.query.status))continue;
     for(const t of row.assignedTasks||[]){
       if(req.query.status&&t.status!==req.query.status)continue;
-      ws.addRow({title:t.title,employee:row.employee?.name,department:row.department?.name,status:t.status,priority:t.priority,progress:t.progress,date:row.date,due:t.dueTime});
+      lineItems.push({title:t.title,employee:row.employee?.name||'—',department:row.department?.name||'—',status:t.status,priority:t.priority,progress:t.progress||0,date:row.date,due:t.dueTime||''});
+      statusTotals[t.status]=(statusTotals[t.status]||0)+1;
+      const key=row.employee?.name||'—';
+      if(!perEmployee.has(key))perEmployee.set(key,{total:0,approved:0,submitted:0,pending:0,rework:0});
+      const e=perEmployee.get(key);e.total++;if(t.status==='approved')e.approved++;else if(t.status==='submitted')e.submitted++;else if(t.status==='rework')e.rework++;else e.pending++;
     }
   }
+  const wb=new ExcelJS.Workbook();
+  wb.creator='TaskFlow';wb.created=new Date();
+
+  const summary=wb.addWorksheet('Summary');
+  summary.columns=[{header:'Metric',key:'k',width:32},{header:'Value',key:'v',width:20}];
+  summary.getRow(1).font={bold:true};
+  summary.addRow({k:'Report generated',v:new Date().toLocaleString('en-IN')});
+  summary.addRow({k:'Date range',v:`${req.query.from||'All time'} to ${req.query.to||'today'}`});
+  summary.addRow({k:'Total tasks',v:lineItems.length});
+  Object.entries(statusTotals).forEach(([status,count])=>summary.addRow({k:'Status: '+status,v:count}));
+  summary.addRow({});
+  summary.addRow({k:'Employee',v:'Total / Approved / Submitted / Pending / Rework'}).font={bold:true,italic:true};
+  for(const[name,e]of perEmployee)summary.addRow({k:name,v:`${e.total} / ${e.approved} / ${e.submitted} / ${e.pending} / ${e.rework}`});
+
+  const ws=wb.addWorksheet('Daily Tasks');
+  ws.columns=[{header:'Title',key:'title',width:35},{header:'Employee',key:'employee',width:25},{header:'Department',key:'department',width:24},{header:'Status',key:'status',width:15},{header:'Priority',key:'priority',width:15},{header:'Progress',key:'progress',width:12},{header:'Date',key:'date',width:14},{header:'Due Time',key:'due',width:12}];
+  ws.getRow(1).font={bold:true};
+  ws.getRow(1).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFE8E4FF'}};
+  ws.autoFilter={from:'A1',to:'H1'};
+  ws.views=[{state:'frozen',ySplit:1}];
+  lineItems.forEach(item=>ws.addRow(item));
+
   res.setHeader('Content-Type','application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
   res.setHeader('Content-Disposition','attachment; filename=taskflow-daily-work-report.xlsx');
   await wb.xlsx.write(res);

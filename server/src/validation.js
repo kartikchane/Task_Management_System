@@ -23,8 +23,6 @@ export const schemas={
   taskSubmit:z.object({note:z.string().trim().optional()}),
   taskReview:z.object({decision:z.enum(['approved','rework']),note:z.string().trim().optional(),points:z.coerce.number().min(0).optional(),quality:z.coerce.number().min(0).max(5).optional(),rating:z.coerce.number().min(0).max(5).optional()}),
   taskComment:z.object({text:trimmed.max(2000)}),
-  taskSubmit:z.object({note:z.string().trim().max(2000).optional()}),
-  taskReview:z.object({decision:z.enum(['completed','in-progress','pending','overdue','not-applicable']),note:z.string().trim().optional(),points:z.coerce.number().min(0).optional(),quality:z.coerce.number().min(0).optional(),rating:z.coerce.number().min(0).max(5).optional()}),
   password:z.object({currentPassword:z.string().min(1),newPassword:z.string().min(8)}),
   profile:z.object({name:trimmed.optional(),phone:z.string().trim().optional(),designation:z.string().trim().optional(),skills:z.array(z.string().trim()).optional()}),
   forgot:z.object({email:z.string().email()}),

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import api from "../api";
+import api, { attachmentUrl } from "../api";
 import { useRefresh } from "../hooks";
 import { useAuth } from "../context";
 import { Button, Badge, Empty, Skeleton, Modal, Field } from "../components/UI";
@@ -41,7 +41,7 @@ export default function DailyWork() {
 
 function EmployeeDaily() {
   const [row, setRow] = useState(null);
-  const [openTaskId, setOpenTaskId] = useState(null);
+  const [openTaskRef, setOpenTaskRef] = useState(null);
   const load = useCallback(
     () => api.get("/daily-work/today").then((r) => { setRow(r.data); return r.data }),
     [],
@@ -49,43 +49,50 @@ function EmployeeDaily() {
   useRefresh(load);
   if (!row) return <Skeleton />;
 
-  const tasks = row.assignedTasks || [];
-  const task = openTaskId ? tasks.find((t) => t._id === openTaskId) : null;
+  const todayTasks = (row.assignedTasks || []).map((t) => ({ ...t, workId: row._id, date: row.date, overdue: false }));
+  const overdueTasks = (row.overdueTasks || []).map((t) => ({ ...t, overdue: true }));
+  const allTasks = [...overdueTasks, ...todayTasks];
+  const task = openTaskRef ? allTasks.find((t) => t._id === openTaskRef.taskId) : null;
   const counts = {
-    approved: tasks.filter((t) => t.status === "approved").length,
-    submitted: tasks.filter((t) => t.status === "submitted").length,
+    approved: todayTasks.filter((t) => t.status === "approved").length,
+    submitted: todayTasks.filter((t) => t.status === "submitted").length,
   };
 
-  const updateProgress = async (taskId, value) => {
+  const updateProgress = async (workId, taskId, value) => {
     try {
-      const { data } = await api.patch(
-        `/daily-work/tasks/${row._id}/${taskId}/progress`,
-        { progress: value },
-      );
-      setRow(data);
+      await api.patch(`/daily-work/tasks/${workId}/${taskId}/progress`, { progress: value });
+      await load();
     } catch (e) {
       toast.error(e.response?.data?.message || "Unable to update progress");
     }
   };
-  const addComment = async (e, taskId) => {
+  const toggleGenerated = async (id, done) => {
+    try {
+      const { data } = await api.patch(`/daily-work/today/generated-tasks/${id}`, { done });
+      setRow((prev) => ({ ...data, overdueTasks: prev.overdueTasks }));
+    } catch (e) {
+      toast.error(e.response?.data?.message || "Unable to update checklist item");
+    }
+  };
+  const addComment = async (e, workId, taskId) => {
     e.preventDefault();
     const text = e.target.text.value.trim();
     if (!text) return;
     try {
-      await api.post(`/daily-work/tasks/${row._id}/${taskId}/comments`, { text });
+      await api.post(`/daily-work/tasks/${workId}/${taskId}/comments`, { text });
       e.target.reset();
       await load();
     } catch (e) {
       toast.error(e.response?.data?.message || "Unable to add comment");
     }
   };
-  const attach = async (e, taskId) => {
+  const attach = async (e, workId, taskId) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const fd = new FormData();
     fd.append("file", file);
     try {
-      await api.post(`/daily-work/tasks/${row._id}/${taskId}/attachments`, fd);
+      await api.post(`/daily-work/tasks/${workId}/${taskId}/attachments`, fd);
       toast.success("File uploaded");
       await load();
     } catch (e) {
@@ -94,20 +101,34 @@ function EmployeeDaily() {
       e.target.value = "";
     }
   };
-  const submitTask = async (e, taskId) => {
+  const submitTask = async (e, workId, taskId) => {
     e.preventDefault();
     try {
-      const { data } = await api.post(
-        `/daily-work/tasks/${row._id}/${taskId}/submit`,
-        { note: e.target.note.value },
-      );
-      setRow(data);
+      await api.post(`/daily-work/tasks/${workId}/${taskId}/submit`, { note: e.target.note.value });
       toast.success("Task submitted to your manager");
-      setOpenTaskId(null);
+      setOpenTaskRef(null);
+      await load();
     } catch (e) {
       toast.error(e.response?.data?.message || "Unable to submit task");
     }
   };
+
+  const renderCard = (t) => (
+    <article className="task-card" key={t._id} onClick={() => setOpenTaskRef({ workId: t.workId, taskId: t._id })}>
+      <div className="row wrap">
+        <Badge tone={t.priority === "critical" ? "red" : t.priority === "high" ? "orange" : "muted"}>{t.priority}</Badge>
+        <Badge tone={tone[t.status]}>{(t.status || "pending").replace("-", " ")}</Badge>
+        {t.overdue && <Badge tone="red">Overdue · {t.date}</Badge>}
+      </div>
+      <h3>{t.title}</h3>
+      <p>{t.description || "No description provided."}</p>
+      <div className="progress"><i style={{ width: (t.progress || 0) + "%" }} /></div>
+      <div className="task-card-foot">
+        <span><Clock3 /> Due {t.dueTime}</span>
+        <span><MessageSquare />{t.comments?.length || 0}<Paperclip />{t.attachments?.length || 0}</span>
+      </div>
+    </article>
+  );
 
   return (
     <>
@@ -124,11 +145,17 @@ function EmployeeDaily() {
       <div className="daily-hero card">
         <div>
           <span className="eyebrow">Today's assigned work</span>
-          <h2>{tasks.length ? `${counts.approved}/${tasks.length} tasks approved` : "No tasks assigned yet"}</h2>
+          <h2>{todayTasks.length ? `${counts.approved}/${todayTasks.length} tasks approved` : "No tasks assigned yet"}</h2>
           <p>Your admin/manager assigns tasks here every day. Update progress, attach documents and submit each task for review.</p>
         </div>
-        <Badge tone={tone[row.status]}>{row.status.replace("-", " ")}</Badge>
+        <Badge tone={tone[row.status]}>{(row.status||'pending').replace("-", " ")}</Badge>
       </div>
+      {overdueTasks.length > 0 && (
+        <div className="notice warning">
+          <AlertCircle />
+          <div><b>{overdueTasks.length} overdue task{overdueTasks.length > 1 ? "s" : ""} from previous days</b><p>These are still open. Complete and submit them below.</p></div>
+        </div>
+      )}
       {row.generatedTasks?.length > 0 && (
         <section className="card daily-form">
           <div className="section-head">
@@ -141,44 +168,45 @@ function EmployeeDaily() {
           <div className="stack-fields">
             {row.generatedTasks.map((t) => (
               <label className="row" key={t._id}>
-                <input type="checkbox" checked={t.done} disabled readOnly />
-                <span>{t.title}</span>
+                <input
+                  type="checkbox"
+                  checked={t.done}
+                  onChange={(e) => toggleGenerated(t._id, e.target.checked)}
+                />
+                <span style={t.done ? { textDecoration: "line-through", opacity: 0.6 } : undefined}>{t.title}</span>
               </label>
             ))}
           </div>
         </section>
       )}
-      {tasks.length ? (
-        <div className="daily-grid">
-          {tasks.map((t) => (
-            <article className="task-card" key={t._id} onClick={() => setOpenTaskId(t._id)}>
-              <div className="row wrap">
-                <Badge tone={t.priority === "critical" ? "red" : t.priority === "high" ? "orange" : "muted"}>{t.priority}</Badge>
-                <Badge tone={tone[t.status]}>{t.status.replace("-", " ")}</Badge>
-              </div>
-              <h3>{t.title}</h3>
-              <p>{t.description || "No description provided."}</p>
-              <div className="progress"><i style={{ width: (t.progress || 0) + "%" }} /></div>
-              <div className="task-card-foot">
-                <span><Clock3 /> Due {t.dueTime}</span>
-                <span><MessageSquare />{t.comments?.length || 0}<Paperclip />{t.attachments?.length || 0}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <Empty title="No tasks assigned for today" text="Your admin/manager will assign your daily tasks here." />
+      {overdueTasks.length > 0 && (
+        <>
+          <h3 style={{ marginTop: 8 }}>Overdue (previous days)</h3>
+          <div className="daily-grid">{overdueTasks.map(renderCard)}</div>
+        </>
       )}
+      {todayTasks.length > 0 && overdueTasks.length > 0 && <h3 style={{ marginTop: 8 }}>Today</h3>}
+      {todayTasks.length ? (
+        <div className="daily-grid">{todayTasks.map(renderCard)}</div>
+      ) : overdueTasks.length === 0 ? (
+        <Empty title="No tasks assigned for today" text="Your admin/manager will assign your daily tasks here." />
+      ) : null}
       {task && (
-        <Modal title={task.title} onClose={() => setOpenTaskId(null)} wide>
+        <Modal title={task.title} onClose={() => setOpenTaskRef(null)} wide>
           <div className="task-detail">
             <div className="detail-main">
               <div className="row wrap">
-                <Badge tone={tone[task.status]}>{task.status.replace("-", " ")}</Badge>
+                <Badge tone={tone[task.status]}>{(task.status||'pending').replace("-", " ")}</Badge>
                 <Badge>{task.priority} priority</Badge>
-                <span className="muted">Due {task.dueTime} · Assigned by {task.assignedBy?.name || "Manager"}</span>
+                <span className="muted">Due {task.dueTime} · Assigned by {task.assignedBy?.name || "Manager"}{task.overdue ? ` · ${task.date}` : ""}</span>
               </div>
               <p>{task.description || "No description provided."}</p>
+              {task.overdue && (
+                <div className="notice warning">
+                  <AlertCircle />
+                  <div><b>Overdue</b><p>This task was assigned on {task.date} and is still open.</p></div>
+                </div>
+              )}
               {task.status === "rework" && (
                 <div className="notice warning">
                   <AlertCircle />
@@ -198,7 +226,7 @@ function EmployeeDaily() {
                 max="100"
                 value={task.progress || 0}
                 disabled={locked(task.status)}
-                onChange={(e) => updateProgress(task._id, Number(e.target.value))}
+                onChange={(e) => updateProgress(task.workId, task._id, Number(e.target.value))}
               />
               <div className="detail-section">
                 <h4>Comments</h4>
@@ -212,7 +240,7 @@ function EmployeeDaily() {
                 ) : (
                   <p className="muted">No comments yet.</p>
                 )}
-                <form className="comment-form" onSubmit={(e) => addComment(e, task._id)}>
+                <form className="comment-form" onSubmit={(e) => addComment(e, task.workId, task._id)}>
                   <input name="text" placeholder="Write a comment for your manager..." />
                   <Button>Send</Button>
                 </form>
@@ -228,7 +256,7 @@ function EmployeeDaily() {
               {task.attachments?.length > 0 && (
                 <div className="stack-fields">
                   {task.attachments.map((a) => (
-                    <a key={a._id} href={a.url} target="_blank" rel="noreferrer" className="btn full">
+                    <a key={a._id} href={attachmentUrl(a)} target="_blank" rel="noreferrer" className="btn full">
                       <Paperclip />{a.name}
                     </a>
                   ))}
@@ -238,11 +266,11 @@ function EmployeeDaily() {
                 <label className="upload">
                   <Upload />
                   Attach document
-                  <input type="file" onChange={(e) => attach(e, task._id)} />
+                  <input type="file" onChange={(e) => attach(e, task.workId, task._id)} />
                 </label>
               )}
               {!locked(task.status) && (
-                <form onSubmit={(e) => submitTask(e, task._id)} className="review-box">
+                <form onSubmit={(e) => submitTask(e, task.workId, task._id)} className="review-box">
                   <textarea name="note" placeholder="Submission note for your manager (optional)" defaultValue={task.submissionNote || ""} />
                   <Button variant="primary full"><Send />Submit for review</Button>
                 </form>
@@ -383,7 +411,7 @@ function ManagerDaily() {
               <div className="row">
                 <div className="avatar large">{x.employee?.name?.[0]}</div>
                 <div className="grow"><h3>{x.employee?.name}</h3><p>{x.employee?.designation || "Employee"} · {x.department?.name}</p></div>
-                <Badge tone={tone[x.status]}>{x.status.replace("-", " ")}</Badge>
+                <Badge tone={tone[x.status]}>{(x.status||'pending').replace("-", " ")}</Badge>
               </div>
               <div className="progress"><i style={{ width: (x.progress || 0) + "%" }} /></div>
               {x.assignedTasks?.length ? (
@@ -396,7 +424,7 @@ function ManagerDaily() {
                       onClick={(e) => { e.stopPropagation(); setSelectedWorkId(x._id); setSelectedTaskId(t._id); }}
                     >
                       <span>{t.title}</span>
-                      <Badge tone={tone[t.status]}>{t.status.replace("-", " ")}</Badge>
+                      <Badge tone={tone[t.status]}>{(t.status||'pending').replace("-", " ")}</Badge>
                     </div>
                   ))}
                   {x.assignedTasks.length > 3 && <small className="muted">+{x.assignedTasks.length - 3} more task(s)</small>}
@@ -452,7 +480,7 @@ function ManagerDaily() {
           {!selectedTask ? (
             <div className="form-grid">
               <div className="row wrap">
-                <Badge tone={tone[selectedRow.status]}>{selectedRow.status.replace("-", " ")}</Badge>
+                <Badge tone={tone[selectedRow.status]}>{(selectedRow.status||'pending').replace("-", " ")}</Badge>
                 <span className="muted">{selectedRow.date} · {selectedRow.department?.name}</span>
               </div>
               {selectedRow.assignedTasks?.length ? (
@@ -460,7 +488,7 @@ function ManagerDaily() {
                   <article className="task-card" key={t._id} onClick={() => setSelectedTaskId(t._id)}>
                     <div className="row wrap">
                       <Badge tone={t.priority === "critical" ? "red" : t.priority === "high" ? "orange" : "muted"}>{t.priority}</Badge>
-                      <Badge tone={tone[t.status]}>{t.status.replace("-", " ")}</Badge>
+                      <Badge tone={tone[t.status]}>{(t.status||'pending').replace("-", " ")}</Badge>
                     </div>
                     <h3>{t.title}</h3>
                     <p>{t.description || "No description provided."}</p>
@@ -482,7 +510,7 @@ function ManagerDaily() {
                   <ArrowLeft />Back to tasks
                 </button>
                 <div className="row wrap">
-                  <Badge tone={tone[selectedTask.status]}>{selectedTask.status.replace("-", " ")}</Badge>
+                  <Badge tone={tone[selectedTask.status]}>{(selectedTask.status||'pending').replace("-", " ")}</Badge>
                   <Badge>{selectedTask.priority} priority</Badge>
                   <span className="muted">Due {selectedTask.dueTime}</span>
                 </div>
@@ -531,7 +559,7 @@ function ManagerDaily() {
                 {selectedTask.attachments?.length > 0 && (
                   <div className="stack-fields">
                     {selectedTask.attachments.map((a) => (
-                      <a key={a._id} href={a.url} target="_blank" rel="noreferrer" className="btn full">
+                      <a key={a._id} href={attachmentUrl(a)} target="_blank" rel="noreferrer" className="btn full">
                         <Paperclip />{a.name}
                       </a>
                     ))}

@@ -9,16 +9,25 @@ import toast from 'react-hot-toast';
 
 const statuses=['todo','in-progress','submitted','approved','rework'];
 const statusTone={todo:'#94a3b8','in-progress':'#4169d8','submitted':'#8b5cf6','approved':'#16a085','rework':'#f59e0b'};
+const iso=(d)=>d.toISOString().slice(0,10);
+const presets={
+  today:()=>{const d=new Date();return {from:iso(d),to:iso(d)}},
+  week:()=>{const d=new Date();const day=d.getDay()||7;const start=new Date(d);start.setDate(d.getDate()-day+1);return {from:iso(start),to:iso(d)}},
+  month:()=>{const d=new Date();return {from:iso(new Date(d.getFullYear(),d.getMonth(),1)),to:iso(d)}},
+  year:()=>{const d=new Date();return {from:iso(new Date(d.getFullYear(),0,1)),to:iso(d)}},
+  all:()=>({from:'',to:''}),
+};
 
 export default function Reports(){
   const {user}=useAuth();
-  const [data,setData]=useState(null),[deps,setDeps]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
-  const [filters,setFilters]=useState({department:'',status:'',from:'',to:''});
+  const [data,setData]=useState(null),[deps,setDeps]=useState([]),[employees,setEmployees]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState('');
+  const [filters,setFilters]=useState({department:'',employee:'',status:'',from:'',to:''});
   const params=useMemo(()=>Object.fromEntries(Object.entries(filters).filter(([,v])=>v)),[filters]);
   const load=useCallback(()=>{
     setLoading(true);setError('');
-    return Promise.all([api.get('/reports/summary',{params}),...(user.role==='superadmin'?[api.get('/departments')]:[])]).then(([summary,depRes])=>{
+    return Promise.all([api.get('/reports/summary',{params}),api.get('/daily-work/employees'),...(user.role==='superadmin'?[api.get('/departments')]:[])]).then(([summary,empRes,depRes])=>{
       setData(summary.data);
+      setEmployees(empRes.data);
       if(depRes)setDeps(depRes.data);
     }).catch(e=>{
       setError(e.response?.data?.message||'Unable to load reports');
@@ -45,10 +54,18 @@ export default function Reports(){
     <div className="page-head"><div><h1>Reports & Analytics</h1><p>Operational insight generated from live Daily Work records.</p></div><div className="actions"><Button onClick={exportCsv}><Download/>CSV</Button><Button onClick={exportExcel}><FileSpreadsheet/>Excel</Button><Button onClick={printPdf}><Printer/>PDF</Button></div></div>
     <div className="toolbar card">
       {user.role==='superadmin'&&<select value={filters.department} onChange={e=>setFilters({...filters,department:e.target.value})}><option value="">All departments</option>{deps.map(x=><option key={x._id} value={x._id}>{x.name}</option>)}</select>}
+      <select value={filters.employee} onChange={e=>setFilters({...filters,employee:e.target.value})}><option value="">All employees</option>{employees.map(x=><option key={x._id} value={x._id}>{x.name}</option>)}</select>
       <select value={filters.status} onChange={e=>setFilters({...filters,status:e.target.value})}><option value="">All statuses</option>{statuses.map(x=><option key={x} value={x}>{x.replace('-',' ')}</option>)}</select>
       <input type="date" value={filters.from} onChange={e=>setFilters({...filters,from:e.target.value})}/>
       <input type="date" value={filters.to} onChange={e=>setFilters({...filters,to:e.target.value})}/>
       <Button onClick={load}><RefreshCw/>Refresh</Button>
+    </div>
+    <div className="toolbar card">
+      <Button onClick={()=>setFilters({...filters,...presets.today()})}>Today</Button>
+      <Button onClick={()=>setFilters({...filters,...presets.week()})}>This Week</Button>
+      <Button onClick={()=>setFilters({...filters,...presets.month()})}>This Month</Button>
+      <Button onClick={()=>setFilters({...filters,...presets.year()})}>This Year</Button>
+      <Button onClick={()=>setFilters({...filters,...presets.all()})}>All Time</Button>
     </div>
     {loading?<Skeleton/>:error?<Empty title="Unable to load reports" text={error}/>:!data?<Empty title="No report data" text="Report data will appear here."/>:<div className="report-print">
       <div className="grid cols-3">
@@ -60,6 +77,18 @@ export default function Reports(){
         <section className="card chart-card"><div className="section-head"><div><h3>Daily tasks by status</h3><p>Workflow distribution</p></div></div>{data.byStatus.length?<ResponsiveContainer width="100%" height={300}><PieChart><Pie data={data.byStatus} dataKey="count" nameKey="_id" innerRadius={70} outerRadius={105} paddingAngle={4}>{data.byStatus.map((x,i)=><Cell key={i} fill={statusTone[x._id]||'#94a3b8'}/>)}</Pie><Tooltip/></PieChart></ResponsiveContainer>:<Empty title="No status data" text="No daily tasks match the selected filters."/>}</section>
         <section className="card chart-card"><div className="section-head"><div><h3>Top contributors</h3><p>Approved daily tasks per employee</p></div></div>{data.productivity.length?<ResponsiveContainer width="100%" height={300}><BarChart data={data.productivity}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="name"/><YAxis allowDecimals={false}/><Tooltip/><Bar dataKey="completed" fill="#635bff" radius={[8,8,0,0]}/></BarChart></ResponsiveContainer>:<Empty title="No productivity data" text="Approved daily tasks will appear here."/>}</section>
       </div>
+      {filters.employee&&(
+        <section className="card chart-card" style={{marginTop:18}}>
+          <div className="section-head"><div><h3>{data.employee?.name||'Employee'} — Daily timeline</h3><p>{data.employee?.designation||'Employee'} · {data.employee?.department?.name||'—'}</p></div></div>
+          {data.timeline?.length?<div className="stack-fields">{data.timeline.map(d=>(
+            <div key={d.date} className="row" style={{justifyContent:'space-between'}}>
+              <span>{d.date}</span>
+              <span className="muted">{d.approved}/{d.total} approved</span>
+              <span style={{color:statusTone[d.status]||'#94a3b8',fontWeight:600,textTransform:'capitalize'}}>{(d.status||'pending').replace('-',' ')}</span>
+            </div>
+          ))}</div>:<Empty title="No daily work in range" text="This employee has no daily work records for the selected period."/>}
+        </section>
+      )}
     </div>}
   </>;
 }
