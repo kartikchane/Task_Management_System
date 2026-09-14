@@ -34,7 +34,26 @@ const locked = (status) => ["submitted", "approved"].includes(status);
 
 export default function DailyWork() {
   const { user } = useAuth();
-  return user.role === "employee" ? <EmployeeDaily /> : <ManagerDaily />;
+  if (user.role === "employee") return <EmployeeDaily />;
+  if (user.role === "admin") return <AdminDailyWork />;
+  return <ManagerDaily />;
+}
+
+function AdminDailyWork() {
+  const [tab, setTab] = useState("team");
+  return (
+    <>
+      <div className="toolbar card" style={{ marginBottom: 18 }}>
+        <Button variant={tab === "team" ? "primary" : undefined} onClick={() => setTab("team")}>
+          Team Monitor
+        </Button>
+        <Button variant={tab === "my" ? "primary" : undefined} onClick={() => setTab("my")}>
+          My Daily Tasks
+        </Button>
+      </div>
+      {tab === "team" ? <ManagerDaily /> : <EmployeeDaily />}
+    </>
+  );
 }
 
 /* ---------------- Employee: work on tasks assigned by the manager ---------------- */
@@ -442,11 +461,11 @@ function ManagerDaily() {
       {assignOpen && (
         <Modal title="Assign daily task" onClose={() => setAssignOpen(false)}>
           <form onSubmit={assign} className="form-grid">
-            <Field label="Employee">
+            <Field label="Assign to">
               <select name="employeeId" required>
-                <option value="">Select employee</option>
+                <option value="">Select person</option>
                 {employees.map((e) => (
-                  <option key={e._id} value={e._id}>{e.name} — {e.department?.name}</option>
+                  <option key={e._id} value={e._id}>{e.name}{e.role === "admin" ? " (Admin)" : ""} — {e.department?.name}</option>
                 ))}
               </select>
             </Field>

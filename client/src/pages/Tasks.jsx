@@ -65,7 +65,7 @@ export default function Tasks() {
       api.get("/projects"),
       ...(user.role !== "employee"
         ? [
-            api.get("/users", { params: { role: "employee" } }),
+            api.get("/users", { params: { role: user.role === "superadmin" ? "employee,admin" : "employee" } }),
             api.get("/departments"),
           ]
         : []),
@@ -123,8 +123,11 @@ export default function Tasks() {
       toast.error(e.response?.data?.message || "Unable to update progress");
     }
   };
+  const isAssignee =
+    selected &&
+    String(selected.assignedTo?._id || selected.assignedTo) === String(user.id);
   const canEditProgress =
-    user.role === "employee" &&
+    isAssignee &&
     selected &&
     !["completed", "not-applicable", "submitted"].includes(selected.status);
   const comment = async (e) => {
@@ -348,10 +351,10 @@ export default function Tasks() {
             </Field>
             <Field label="Assign to">
               <select name="assignedTo" required>
-                <option value="">Select employee</option>
+                <option value="">Select person</option>
                 {people.map((x) => (
                   <option key={x._id} value={x._id}>
-                    {x.name}
+                    {x.name}{x.role === "admin" ? " (Admin)" : ""}
                   </option>
                 ))}
               </select>
@@ -506,7 +509,7 @@ export default function Tasks() {
                   ))}
                 </div>
               )}
-              {user.role === "employee" &&
+              {isAssignee &&
                 !["completed", "not-applicable", "submitted"].includes(selected.status) && (
                   <label className="upload">
                     <Upload />
@@ -514,7 +517,7 @@ export default function Tasks() {
                     <input type="file" onChange={attach} />
                   </label>
                 )}
-              {user.role === "employee" &&
+              {isAssignee &&
                 !["completed", "not-applicable", "submitted"].includes(selected.status) && (
                   <form onSubmit={submit} className="review-box">
                     <textarea
@@ -527,12 +530,12 @@ export default function Tasks() {
                     </Button>
                   </form>
                 )}
-              {user.role === "employee" && selected.status === "submitted" && (
+              {isAssignee && selected.status === "submitted" && (
                 <div className="notice">
                   <p>Waiting for your manager to review this task.</p>
                 </div>
               )}
-              {user.role !== "employee" && selected.status === "submitted" && (
+              {!isAssignee && user.role !== "employee" && selected.status === "submitted" && (
                 <form className="review-box" onSubmit={(e) => { e.preventDefault(); review("approved", e.target); }}>
                   <textarea name="note" placeholder="Feedback for employee" />
                   <div className="form-grid two" style={{ padding: 0 }}>
@@ -553,7 +556,7 @@ export default function Tasks() {
                   </Button>
                 </form>
               )}
-              {user.role !== "employee" && selected.status !== "submitted" && (
+              {!isAssignee && user.role !== "employee" && selected.status !== "submitted" && (
                 <form className="review-box" onSubmit={updateStatus}>
                   <select name="status" defaultValue={selected.status}>
                     {columns
