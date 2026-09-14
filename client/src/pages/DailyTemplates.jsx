@@ -10,7 +10,7 @@ const weekdayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "F
 const parseTasks = (text) =>
   text
     .split("\n")
-    .map((line) => line.replace(/^\s*\d+[.)-]?\s*/, "").trim())
+    .map((line) => line.replace(/^\s*(day\s*)?\d+[.):-]?\s*/i, "").trim())
     .filter(Boolean);
 
 const emptyForm = {

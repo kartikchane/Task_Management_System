@@ -47,15 +47,15 @@ export default function Leave(){
     }
   };
   return <>
-    <div className="page-head"><div><h1>Leave Management</h1><p>{user.role==='employee'?'Request leave and track approvals.':'Review employee leave requests across your scope.'}</p></div></div>
+    <div className="page-head"><div><h1>Leave Management</h1><p>{user.role==='employee'?'Request leave and track approvals.':'Request your own leave and review requests across your scope.'}</p></div></div>
     <div className="grid cols-4">
       <Mini icon={<CalendarDays/>} label="Requests" value={counts.total}/>
       <Mini icon={<RefreshCw/>} label="Pending" value={counts.pending}/>
       <Mini icon={<CheckCircle2/>} label="Approved" value={counts.approved}/>
       <Mini icon={<XCircle/>} label="Rejected" value={counts.rejected}/>
     </div>
-    {user.role==='employee'&&<form className="card daily-form" onSubmit={submit}>
-      <div className="section-head"><div><h3>New Request</h3><p>Submit dates and reason for manager review.</p></div></div>
+    <form className="card daily-form" onSubmit={submit}>
+      <div className="section-head"><div><h3>New Request</h3><p>{user.role==='employee'?'Submit dates and reason for manager review.':'Submit your own leave request.'}</p></div></div>
       <div className="form-grid two">
         <Field label="Type"><select value={f.type} onChange={e=>setF({...f,type:e.target.value})}><option>casual</option><option>sick</option><option>earned</option><option>unpaid</option><option>other</option></select></Field>
         <Field label="From"><input type="date" required value={f.fromDate} onChange={e=>setF({...f,fromDate:e.target.value})}/></Field>
@@ -63,9 +63,9 @@ export default function Leave(){
         <Field label="Reason"><textarea required value={f.reason} onChange={e=>setF({...f,reason:e.target.value})}/></Field>
       </div>
       <div className="form-actions"><Button variant="primary"><Send/>Submit Request</Button></div>
-    </form>}
+    </form>
     <div className="toolbar card"><span>{rows.length} leave request{rows.length===1?'':'s'}</span><Button onClick={load}><RefreshCw/>Refresh</Button></div>
-    {loading?<Skeleton/>:error?<Empty title="Unable to load leave" text={error}/>:rows.length?<div className="table-wrap card"><table><thead><tr><th>Employee</th><th>Dates</th><th>Type</th><th>Status</th><th>Reviewed by</th><th>Action</th></tr></thead><tbody>{rows.map(x=><tr key={x._id}><td><div className="person"><div className="avatar">{(x.employee?.name||user.name)?.[0]}</div><div><b>{x.employee?.name||user.name}</b><span>{x.employee?.email||user.email}</span></div></div></td><td>{x.fromDate} to {x.toDate}</td><td>{x.type}</td><td><Badge tone={tones[x.status]}>{x.status}</Badge></td><td>{x.reviewedBy?.name||'-'}</td><td>{user.role!=='employee'&&x.status==='pending'?<div className="actions"><button type="button" onClick={()=>review(x._id,'approved')} title="Approve"><CheckCircle2/></button><button type="button" onClick={()=>review(x._id,'rejected')} title="Reject"><XCircle/></button></div>:'-'}</td></tr>)}</tbody></table></div>:<Empty title="No leave requests" text={user.role==='employee'?'Your leave requests will appear here.':'No employee leave requests are available yet.'}/>}
+    {loading?<Skeleton/>:error?<Empty title="Unable to load leave" text={error}/>:rows.length?<div className="table-wrap card"><table><thead><tr><th>Employee</th><th>Dates</th><th>Type</th><th>Status</th><th>Reviewed by</th><th>Action</th></tr></thead><tbody>{rows.map(x=><tr key={x._id}><td><div className="person"><div className="avatar">{(x.employee?.name||user.name)?.[0]}</div><div><b>{x.employee?.name||user.name}</b><span>{x.employee?.email||user.email}</span></div></div></td><td>{x.fromDate} to {x.toDate}</td><td>{x.type}</td><td><Badge tone={tones[x.status]}>{x.status}</Badge></td><td>{x.reviewedBy?.name||'-'}</td><td>{user.role!=='employee'&&x.status==='pending'&&String(x.employee?._id||x.employee)!==String(user.id)?<div className="actions"><button type="button" onClick={()=>review(x._id,'approved')} title="Approve"><CheckCircle2/></button><button type="button" onClick={()=>review(x._id,'rejected')} title="Reject"><XCircle/></button></div>:'-'}</td></tr>)}</tbody></table></div>:<Empty title="No leave requests" text={user.role==='employee'?'Your leave requests will appear here.':'No employee leave requests are available yet.'}/>}
   </>;
 }
 

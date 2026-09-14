@@ -9,7 +9,7 @@ async function notifyOnce(io,recipient,data){
   io.to(String(recipient)).emit('notification',item);
   return item;
 }
-async function generateDailyWork(io,targetDate){
+export async function generateDailyWork(io,targetDate){
   const target=targetDate||iso(), now=new Date(target+'T00:00:00'), day=now.getDay(), monthDay=now.getDate();
   if(await Holiday.exists({date:target})) return 0;
   const templates=await DailyTaskTemplate.find({active:true,$or:[{cadence:'daily',workingDays:day},{cadence:'weekly',workingDays:day},{cadence:'monthly',monthlyDay:monthDay},{cadence:{$exists:false},workingDays:day}]});

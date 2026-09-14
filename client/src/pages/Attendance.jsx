@@ -11,7 +11,19 @@ const tones={present:'green',late:'orange','half-day':'orange',absent:'red',leav
 
 export default function Attendance(){
   const {user}=useAuth();
-  return user.role==='employee'?<EmployeeAttendance/>:<ManagerAttendance/>;
+  if(user.role==='employee')return <EmployeeAttendance/>;
+  return <AdminAttendance/>;
+}
+
+function AdminAttendance(){
+  const [tab,setTab]=useState('team');
+  return <>
+    <div className="toolbar card" style={{marginBottom:18}}>
+      <Button variant={tab==='team'?'primary':undefined} onClick={()=>setTab('team')}>Team Attendance</Button>
+      <Button variant={tab==='my'?'primary':undefined} onClick={()=>setTab('my')}>My Attendance</Button>
+    </div>
+    {tab==='team'?<ManagerAttendance/>:<EmployeeAttendance/>}
+  </>;
 }
 
 function EmployeeAttendance(){
