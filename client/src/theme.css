@@ -7,6 +7,10 @@
    ========================================================================== */
 
 :root {
+  /* One "design unit": 1vw on wide screens, but shrinks with the window height too,
+     so short laptop screens (or browser zoom) get a proportionally smaller layout.
+     At the designer's 1806x1080 frame it is exactly 1vw. */
+  --u: min(1vw, 1.672vh);
   --gp-navy: #093693; /* sidebar */
   --gp-navy-2: #0f44a2; /* date chip text, avatars */
   --gp-ink: #2f4392; /* dark action buttons, unread dot */
@@ -21,10 +25,10 @@
   --gp-field-line: #d6e3fa;
   --gp-radius: 14px;
 
-  --gp-side: clamp(236px, 16.6vw, 300px);
-  --gp-head: clamp(80px, 6.2vw, 112px);
-  --gp-pad: clamp(20px, 2.66vw, 48px);
-  --gp-h1: clamp(28px, 2.05vw, 37px);
+  --gp-side: clamp(236px, calc(16.6 * var(--u)), 300px);
+  --gp-head: clamp(64px, calc(6.2 * var(--u)), 112px);
+  --gp-pad: clamp(20px, calc(2.66 * var(--u)), 48px);
+  --gp-h1: clamp(28px, calc(2.05 * var(--u)), 37px);
 }
 
 /* ---------- Base ---------- */
@@ -85,7 +89,7 @@ body:has(.gp) {
   left: 0;
   right: 0;
   top: var(--gp-head);
-  height: clamp(190px, 12.4vw, 230px);
+  height: clamp(150px, calc(12.4 * var(--u)), 230px);
   /* bg-aerial.jpg already has the blue tint baked in and fades to #2f4392 at its edges */
   background: #2f4392 url(/design/bg-aerial.jpg) 69.6% 79% / 71.4% auto no-repeat;
   -webkit-mask-image: linear-gradient(#000 70%, transparent);
@@ -111,7 +115,8 @@ body:has(.gp) {
   width: var(--gp-side);
   background: var(--gp-navy);
   color: #fff;
-  padding: 30px 18px 48px 24px;
+  padding: clamp(16px, calc(1.66 * var(--u)), 30px) 14px clamp(16px, calc(2.66 * var(--u)), 48px)
+    clamp(14px, calc(1.33 * var(--u)), 24px);
   border-right: 0;
   box-shadow: none;
 }
@@ -122,7 +127,7 @@ body:has(.gp) {
   padding: 0 0 0 18px;
 }
 .gp-brand img {
-  width: clamp(160px, 11.6vw, 212px);
+  width: clamp(132px, calc(11.6 * var(--u)), 212px);
   height: auto;
   display: block;
 }
@@ -130,8 +135,8 @@ body:has(.gp) {
   color: #fff;
 }
 .gp-company {
-  margin: clamp(24px, 2.3vw, 41px) 0 12px 24px;
-  font-size: clamp(17px, 1.16vw, 21px);
+  margin: clamp(14px, calc(2.3 * var(--u)), 41px) 0 clamp(6px, calc(0.66 * var(--u)), 12px) 20px;
+  font-size: clamp(14px, calc(1.16 * var(--u)), 21px);
   font-weight: 500;
   line-height: 1.25;
 }
@@ -140,21 +145,26 @@ body:has(.gp) {
   padding: 2px 0 12px 0;
   min-height: 0;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
 }
 .gp .sidebar nav a {
-  min-height: clamp(48px, 3.45vw, 62px);
-  padding: 0 14px 0 22px;
-  gap: 22px;
+  min-height: clamp(38px, calc(3.45 * var(--u)), 62px);
+  padding: 0 12px 0 clamp(14px, calc(1.2 * var(--u)), 22px);
+  gap: clamp(12px, calc(1.2 * var(--u)), 22px);
   white-space: nowrap;
   border-radius: 12px;
   border: 2px solid transparent;
   color: #fff;
   font-weight: 500;
-  font-size: clamp(15px, 1.05vw, 19px);
+  font-size: clamp(14px, calc(1.05 * var(--u)), 19px);
   box-shadow: none;
   background: transparent;
+}
+.gp .sidebar nav a span {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .gp .sidebar nav a:hover {
   background: rgba(255, 255, 255, 0.08);
@@ -167,20 +177,20 @@ body:has(.gp) {
   box-shadow: 0 6px 18px rgba(0, 40, 120, 0.25);
 }
 .gp .nav-icon {
-  width: clamp(21px, 1.45vw, 26px);
-  height: clamp(21px, 1.45vw, 26px);
+  width: clamp(21px, calc(1.45 * var(--u)), 26px);
+  height: clamp(21px, calc(1.45 * var(--u)), 26px);
   flex: 0 0 auto;
 }
 .gp .sidebar-user {
   border-top: 2px solid #5373b4;
   margin: 0 8px 0 6px;
-  padding-top: 22px;
+  padding-top: clamp(10px, calc(1.22 * var(--u)), 22px);
 }
 .gp .sidebar-user .user-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 26px;
+  margin-bottom: clamp(10px, calc(1.44 * var(--u)), 26px);
   color: #fff;
 }
 .gp .sidebar-user .user-row > div:last-child {
@@ -189,41 +199,41 @@ body:has(.gp) {
   min-width: 0;
 }
 .gp .sidebar-user b {
-  font-size: clamp(15px, 1.05vw, 19px);
+  font-size: clamp(15px, calc(1.05 * var(--u)), 19px);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .gp .sidebar-user span:not(.dicon) {
-  font-size: clamp(13px, 0.94vw, 17px);
+  font-size: clamp(13px, calc(0.94 * var(--u)), 17px);
   color: #fff;
 }
 .gp-avatar {
-  width: clamp(46px, 3.1vw, 56px);
-  height: clamp(46px, 3.1vw, 56px);
+  width: clamp(38px, calc(3.1 * var(--u)), 56px);
+  height: clamp(38px, calc(3.1 * var(--u)), 56px);
   border-radius: 10px;
   background: #fff;
   color: var(--gp-navy-2);
   display: grid;
   place-items: center;
-  font-size: clamp(20px, 1.44vw, 26px);
+  font-size: clamp(20px, calc(1.44 * var(--u)), 26px);
   font-weight: 500;
   flex: 0 0 auto;
 }
 .gp .logout-btn {
-  min-height: clamp(50px, 3.45vw, 62px);
+  min-height: clamp(40px, calc(3.45 * var(--u)), 62px);
   border: 2px solid #2a5ccf;
   background: #0b41a7;
   border-radius: 10px;
   color: #fff;
   font-weight: 500;
-  font-size: clamp(15px, 1.05vw, 19px);
+  font-size: clamp(15px, calc(1.05 * var(--u)), 19px);
   gap: 14px;
 }
 .gp .logout-btn .dicon {
-  width: 26px;
-  height: 26px;
+  width: clamp(20px, calc(1.44 * var(--u)), 26px);
+  height: clamp(20px, calc(1.44 * var(--u)), 26px);
 }
 .gp .logout-btn:hover {
   background: #0f4bbd;
@@ -234,7 +244,7 @@ body:has(.gp) {
 .gp header {
   height: var(--gp-head);
   min-height: var(--gp-head);
-  padding: 0 clamp(18px, 3vw, 54px) 0 var(--gp-pad);
+  padding: 0 clamp(18px, calc(3 * var(--u)), 54px) 0 var(--gp-pad);
   background: #fff;
   border-bottom: 0;
   box-shadow: 0 2px 10px rgba(10, 30, 80, 0.06);
@@ -243,22 +253,22 @@ body:has(.gp) {
 }
 .gp header .eyebrow {
   color: #1a3fa0;
-  font-size: clamp(11px, 0.72vw, 13px);
+  font-size: clamp(11px, calc(0.72 * var(--u)), 13px);
   font-weight: 500;
   letter-spacing: 0.02em;
 }
 .gp header h2 {
-  font-size: clamp(22px, 1.77vw, 32px);
+  font-size: clamp(22px, calc(1.77 * var(--u)), 32px);
   font-weight: 700;
   margin-top: 4px;
   color: #000;
 }
 .gp .header-actions {
-  gap: clamp(12px, 1.6vw, 28px);
+  gap: clamp(12px, calc(1.6 * var(--u)), 28px);
 }
 .gp header .search {
-  width: clamp(240px, 20vw, 360px);
-  height: clamp(46px, 3.3vw, 60px);
+  width: clamp(240px, calc(20 * var(--u)), 360px);
+  height: clamp(46px, calc(3.3 * var(--u)), 60px);
   background: #f6f7f8;
   border: 2px solid #e4e7ec;
   border-radius: 10px;
@@ -271,7 +281,7 @@ body:has(.gp) {
   height: 24px;
 }
 .gp header .search input {
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   color: #000;
   min-width: 0;
   width: 100%;
@@ -303,13 +313,13 @@ body:has(.gp) {
 .gp .profile-chip {
   border: 0;
   cursor: pointer;
-  min-height: clamp(46px, 3.2vw, 58px);
+  min-height: clamp(46px, calc(3.2 * var(--u)), 58px);
   padding: 0 16px;
   gap: 14px;
   background: #edf0f8;
   border-radius: 10px;
   color: #000;
-  font-size: clamp(15px, 0.94vw, 17px);
+  font-size: clamp(15px, calc(0.94 * var(--u)), 17px);
   font-weight: 600;
   width: auto;
 }
@@ -368,16 +378,16 @@ body:has(.gp) {
 /* ---------- Page & hero ---------- */
 .gp .page {
   max-width: none;
-  padding: clamp(24px, 2.66vw, 48px) clamp(18px, 3.3vw, 60px) 80px var(--gp-pad);
+  padding: clamp(24px, calc(2.66 * var(--u)), 48px) clamp(18px, calc(3.3 * var(--u)), 60px) 80px var(--gp-pad);
 }
 .gp .page-head,
 .gp .welcome {
   align-items: flex-start;
-  margin-bottom: clamp(20px, 1.7vw, 30px);
+  margin-bottom: clamp(20px, calc(1.7 * var(--u)), 30px);
   padding: 0;
 }
 .gp .page-head {
-  padding-top: clamp(8px, 0.7vw, 12px);
+  padding-top: clamp(8px, calc(0.7 * var(--u)), 12px);
 }
 .gp .page-head h1,
 .gp .welcome h1 {
@@ -385,12 +395,12 @@ body:has(.gp) {
   font-size: var(--gp-h1);
   font-weight: 700;
   line-height: 1.2;
-  margin: clamp(10px, 1.1vw, 20px) 0 clamp(8px, 0.9vw, 14px);
+  margin: clamp(10px, calc(1.1 * var(--u)), 20px) 0 clamp(8px, calc(0.9 * var(--u)), 14px);
 }
 .gp .page-head p,
 .gp .welcome p {
   color: #fff;
-  font-size: clamp(15px, 1.02vw, 18.5px);
+  font-size: clamp(15px, calc(1.02 * var(--u)), 18.5px);
   max-width: none;
   margin: 0;
 }
@@ -405,9 +415,9 @@ body:has(.gp) {
   background: #fff;
   border: 0;
   border-radius: 10px;
-  padding: clamp(12px, 1.05vw, 19px) clamp(16px, 1.4vw, 25px);
+  padding: clamp(12px, calc(1.05 * var(--u)), 19px) clamp(16px, calc(1.4 * var(--u)), 25px);
   color: var(--gp-navy-2);
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   font-weight: 600;
   gap: 14px;
   box-shadow: 0 6px 20px rgba(10, 30, 80, 0.12);
@@ -419,26 +429,26 @@ body:has(.gp) {
 }
 .gp .welcome {
   align-items: center;
-  margin-bottom: clamp(20px, 1.9vw, 34px);
+  margin-bottom: clamp(20px, calc(1.9 * var(--u)), 34px);
 }
 .gp .welcome .eyebrow {
   color: #fff;
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   font-weight: 500;
   letter-spacing: 0;
   line-height: 1.4;
   text-transform: uppercase;
 }
 .gp .welcome h1 {
-  margin: clamp(6px, 0.6vw, 11px) 0 clamp(8px, 0.8vw, 14px);
+  margin: clamp(6px, calc(0.6 * var(--u)), 11px) 0 clamp(8px, calc(0.8 * var(--u)), 14px);
 }
 .btn.sky {
   background: linear-gradient(180deg, #22b6fb, #1aa5f3);
   border: 1px solid #7fd2ff;
   color: #fff;
-  font-size: clamp(15px, 1.05vw, 19px);
+  font-size: clamp(15px, calc(1.05 * var(--u)), 19px);
   font-weight: 500;
-  padding: clamp(12px, 1vw, 17px) clamp(16px, 1.1vw, 20px);
+  padding: clamp(12px, calc(1 * var(--u)), 17px) clamp(16px, calc(1.1 * var(--u)), 20px);
   border-radius: 10px;
   box-shadow: 0 8px 22px rgba(0, 90, 170, 0.25);
 }
@@ -459,7 +469,7 @@ body:has(.gp) {
 .gp-panel {
   background: #fff;
   border-radius: 18px;
-  padding: clamp(10px, 0.8vw, 14px);
+  padding: clamp(10px, calc(0.8 * var(--u)), 14px);
   box-shadow: 0 10px 34px rgba(10, 30, 80, 0.12);
   margin-bottom: 20px;
 }
@@ -467,7 +477,8 @@ body:has(.gp) {
   background: #fff;
   border-radius: var(--gp-radius);
   box-shadow: 0 6px 24px rgba(10, 30, 80, 0.08);
-  padding: clamp(18px, 1.35vw, 24px) clamp(20px, 1.8vw, 32px) clamp(20px, 1.8vw, 32px);
+  padding: clamp(18px, calc(1.35 * var(--u)), 24px) clamp(20px, calc(1.8 * var(--u)), 32px)
+    clamp(20px, calc(1.8 * var(--u)), 32px);
   margin-bottom: 20px;
 }
 .gp-card-head {
@@ -478,51 +489,54 @@ body:has(.gp) {
 }
 .gp-card-head h3 {
   margin: 0;
-  font-size: clamp(20px, 1.44vw, 26px);
+  font-size: clamp(20px, calc(1.44 * var(--u)), 26px);
   font-weight: 700;
 }
 .gp-card-head h3.light {
-  font-size: clamp(17px, 1.16vw, 21px);
+  font-size: clamp(17px, calc(1.16 * var(--u)), 21px);
   font-weight: 500;
 }
 .gp-card-head p {
   margin: 6px 0 0;
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   color: #111;
 }
 .gp-divider {
   border: 0;
   border-top: 1px solid var(--gp-line);
-  margin: clamp(12px, 0.8vw, 14px) -8px clamp(14px, 1.1vw, 20px);
+  margin: clamp(12px, calc(0.8 * var(--u)), 14px) -8px clamp(14px, calc(1.1 * var(--u)), 20px);
 }
 .gp .section-head {
-  padding: clamp(20px, 1.8vw, 32px) clamp(20px, 1.7vw, 30px) 14px;
+  padding: clamp(20px, calc(1.8 * var(--u)), 32px) clamp(20px, calc(1.7 * var(--u)), 30px) 14px;
 }
 .gp .section-head h3 {
-  font-size: clamp(17px, 1.16vw, 21px);
+  font-size: clamp(17px, calc(1.16 * var(--u)), 21px);
   font-weight: 500;
 }
 .gp .section-head p {
-  font-size: clamp(13px, 0.83vw, 15px);
+  font-size: clamp(13px, calc(0.83 * var(--u)), 15px);
   color: #111;
 }
 .gp .section-head a {
   color: #1017c9;
   font-weight: 500;
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
 }
 
 /* ---------- Stat cards ---------- */
 .gp .grid {
-  gap: clamp(14px, 1.1vw, 20px);
+  gap: clamp(14px, calc(1.1 * var(--u)), 20px);
+}
+.gp .grid > * {
+  min-width: 0;
 }
 .stat-card {
   position: relative;
   display: flex;
   align-items: center;
-  gap: clamp(14px, 1.15vw, 21px);
-  min-height: clamp(112px, 7.75vw, 140px);
-  padding: 16px 20px 16px clamp(36px, 2.3vw, 42px);
+  gap: clamp(14px, calc(1.15 * var(--u)), 21px);
+  min-height: clamp(112px, calc(7.75 * var(--u)), 140px);
+  padding: 16px 20px 16px clamp(36px, calc(2.3 * var(--u)), 42px);
   background: #fff;
   border-radius: var(--gp-radius);
   box-shadow: 0 6px 24px rgba(10, 30, 80, 0.08);
@@ -537,7 +551,7 @@ a.stat-card:hover {
 }
 .stat-card .stat-bar {
   position: absolute;
-  left: clamp(16px, 1.16vw, 21px);
+  left: clamp(16px, calc(1.16 * var(--u)), 21px);
   top: 50%;
   translate: 0 -50%;
   width: 4px;
@@ -546,8 +560,8 @@ a.stat-card:hover {
   background: var(--tone);
 }
 .stat-tile {
-  width: clamp(58px, 4.15vw, 75px);
-  height: clamp(58px, 4.15vw, 75px);
+  width: clamp(58px, calc(4.15 * var(--u)), 75px);
+  height: clamp(58px, calc(4.15 * var(--u)), 75px);
   border-radius: 14px;
   background: var(--tone-bg);
   color: var(--tone);
@@ -566,16 +580,16 @@ a.stat-card:hover {
   min-width: 0;
 }
 .stat-text span {
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   color: #111;
 }
 .stat-text strong {
-  font-size: clamp(32px, 2.44vw, 44px);
+  font-size: clamp(32px, calc(2.44 * var(--u)), 44px);
   font-weight: 700;
   line-height: 1.1;
 }
 .stat-text small {
-  font-size: clamp(12px, 0.83vw, 15px);
+  font-size: clamp(12px, calc(0.83 * var(--u)), 15px);
   color: #111;
 }
 .tone-blue {
@@ -612,24 +626,24 @@ a.stat-card:hover {
 
 /* ---------- Dashboard ---------- */
 .gp .command-center {
-  margin-top: clamp(14px, 1.1vw, 20px);
+  margin-top: clamp(14px, calc(1.1 * var(--u)), 20px);
   border-radius: var(--gp-radius);
-  padding-bottom: clamp(16px, 1.5vw, 28px);
+  padding-bottom: clamp(16px, calc(1.5 * var(--u)), 28px);
 }
 .gp .command-center .section-head {
-  margin: 0 clamp(14px, 1.4vw, 26px);
-  padding: clamp(18px, 1.45vw, 26px) 4px clamp(12px, 0.9vw, 16px);
+  margin: 0 clamp(14px, calc(1.4 * var(--u)), 26px);
+  padding: clamp(18px, calc(1.45 * var(--u)), 26px) 4px clamp(12px, calc(0.9 * var(--u)), 16px);
   border-bottom: 1px solid var(--gp-line);
 }
 .gp .command-grid {
   grid-template-columns: repeat(6, minmax(0, 1fr));
   background: none;
   gap: 0;
-  padding: clamp(14px, 1vw, 18px) clamp(14px, 1.4vw, 26px) 0;
+  padding: clamp(14px, calc(1 * var(--u)), 18px) clamp(14px, calc(1.4 * var(--u)), 26px) 0;
 }
 .gp .command-item {
   min-height: 0;
-  padding: 0 clamp(10px, 1.2vw, 22px) 0 4px;
+  padding: 0 clamp(10px, calc(1.2 * var(--u)), 22px) 0 4px;
   gap: 6px;
   background: none;
   color: #111;
@@ -644,21 +658,21 @@ a.stat-card:hover {
   border-left: 1px solid var(--gp-line);
 }
 .gp .command-item + .command-item {
-  padding-left: clamp(18px, 1.6vw, 30px);
+  padding-left: clamp(18px, calc(1.6 * var(--u)), 30px);
 }
 .gp .command-item .dicon,
 .gp .command-item svg {
-  width: clamp(26px, 1.8vw, 33px);
-  height: clamp(26px, 1.8vw, 33px);
+  width: clamp(26px, calc(1.8 * var(--u)), 33px);
+  height: clamp(26px, calc(1.8 * var(--u)), 33px);
   color: var(--tone);
 }
 .gp .command-item span:not(.dicon) {
-  font-size: clamp(13px, 0.83vw, 15px);
+  font-size: clamp(13px, calc(0.83 * var(--u)), 15px);
   font-weight: 400;
   margin-top: 4px;
 }
 .gp .command-item b {
-  font-size: clamp(28px, 2vw, 36px);
+  font-size: clamp(28px, calc(2 * var(--u)), 36px);
   font-weight: 700;
   color: #000;
 }
@@ -670,18 +684,18 @@ a.stat-card:hover {
 }
 .gp .dashboard-grid {
   grid-template-columns: minmax(0, 1.33fr) minmax(0, 1fr);
-  gap: clamp(14px, 1.5vw, 27px);
-  margin-top: clamp(14px, 0.8vw, 14px);
+  gap: clamp(14px, calc(1.5 * var(--u)), 27px);
+  margin-top: clamp(14px, calc(0.8 * var(--u)), 14px);
   align-items: start;
 }
 .gp .dashboard-grid .section-head {
-  margin: 0 clamp(14px, 1.4vw, 26px);
+  margin: 0 clamp(14px, calc(1.4 * var(--u)), 26px);
   padding-left: 4px;
   padding-right: 10px;
   border-bottom: 1px solid var(--gp-line);
 }
 .gp .task-list {
-  padding: 4px clamp(14px, 1.4vw, 26px) 16px;
+  padding: 4px clamp(14px, calc(1.4 * var(--u)), 26px) 16px;
 }
 .gp .task-row {
   border-top: 0;
@@ -731,12 +745,12 @@ a.stat-card:hover {
   border-radius: 50%;
 }
 .gp .health-list {
-  padding: 0 clamp(14px, 1.4vw, 26px) 12px;
+  padding: 0 clamp(14px, calc(1.4 * var(--u)), 26px) 12px;
 }
 .gp .health-list > div {
   border-top: 0;
   border-bottom: 1px solid var(--gp-line);
-  padding: clamp(12px, 0.9vw, 14px) 12px clamp(12px, 0.9vw, 14px) 0;
+  padding: clamp(12px, calc(0.9 * var(--u)), 14px) 12px clamp(12px, calc(0.9 * var(--u)), 14px) 0;
   font-size: 15px;
 }
 .gp .health-list > div:last-child {
@@ -776,19 +790,19 @@ a.stat-card:hover {
 .gp-toolbar {
   display: flex;
   align-items: center;
-  gap: clamp(10px, 0.9vw, 16px);
+  gap: clamp(10px, calc(0.9 * var(--u)), 16px);
   background: #f8f8f8;
   border-radius: 12px;
-  padding: clamp(10px, 0.9vw, 16px);
+  padding: clamp(10px, calc(0.9 * var(--u)), 16px);
   flex-wrap: wrap;
 }
 .gp-toolbar.plain {
   background: none;
-  padding: clamp(10px, 1.2vw, 20px) clamp(4px, 0.4vw, 8px);
+  padding: clamp(10px, calc(1.2 * var(--u)), 20px) clamp(4px, calc(0.4 * var(--u)), 8px);
 }
 .gp .gp-toolbar .search {
   flex: 1 1 260px;
-  height: clamp(46px, 3.1vw, 56px);
+  height: clamp(46px, calc(3.1 * var(--u)), 56px);
   background: var(--gp-field-bg);
   border: 2px solid var(--gp-field-line);
   border-radius: 10px;
@@ -803,7 +817,7 @@ a.stat-card:hover {
   color: #555;
 }
 .gp .gp-toolbar .search input {
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   width: 100%;
   min-width: 0;
   color: #111;
@@ -813,18 +827,18 @@ a.stat-card:hover {
 }
 .gp .gp-toolbar select,
 .gp .gp-toolbar input[type="date"] {
-  height: clamp(46px, 3.1vw, 56px);
-  min-width: clamp(160px, 10.6vw, 192px);
+  height: clamp(46px, calc(3.1 * var(--u)), 56px);
+  min-width: clamp(160px, calc(10.6 * var(--u)), 192px);
   border: 2px solid #dae7ff;
   border-radius: 10px;
   background-color: #fff;
   padding: 0 14px;
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   font-weight: 600;
   color: #000;
 }
 .gp .gp-toolbar .btn {
-  height: clamp(46px, 3.1vw, 56px);
+  height: clamp(46px, calc(3.1 * var(--u)), 56px);
 }
 .gp .gp-toolbar > span {
   color: #333;
@@ -879,10 +893,10 @@ a.stat-card:hover {
   background: #d3e1fc;
 }
 .btn.lg {
-  min-height: clamp(46px, 2.9vw, 52px);
-  font-size: clamp(15px, 1.05vw, 19px);
+  min-height: clamp(46px, calc(2.9 * var(--u)), 52px);
+  font-size: clamp(15px, calc(1.05 * var(--u)), 19px);
   font-weight: 500;
-  padding: 0 clamp(14px, 1vw, 18px);
+  padding: 0 clamp(14px, calc(1 * var(--u)), 18px);
 }
 .btn.lg svg,
 .btn.lg .dicon {
@@ -895,7 +909,7 @@ a.stat-card:hover {
 
 /* ---------- Form fields ---------- */
 .gp .field {
-  font-size: clamp(15px, 0.94vw, 17px);
+  font-size: clamp(15px, calc(0.94 * var(--u)), 17px);
   font-weight: 500;
   color: #000;
   gap: 8px;
@@ -928,18 +942,18 @@ a.stat-card:hover {
 .gp .empty {
   border: 1px dashed #666;
   border-radius: 12px;
-  padding: clamp(28px, 3vw, 54px) 20px;
+  padding: clamp(28px, calc(3 * var(--u)), 54px) 20px;
   color: #444;
   background: #fff;
 }
 .gp .empty h3 {
   color: #000;
-  font-size: clamp(18px, 1.22vw, 22px);
+  font-size: clamp(18px, calc(1.22 * var(--u)), 22px);
   font-weight: 500;
   margin: 10px 0 12px;
 }
 .gp .empty p {
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   margin: 0;
 }
 .gp .empty.with-image {
@@ -962,11 +976,11 @@ a.stat-card:hover {
   font-weight: 400;
 }
 .gp .empty.compact p {
-  font-size: clamp(13px, 0.86vw, 15.5px);
+  font-size: clamp(13px, calc(0.86 * var(--u)), 15.5px);
   color: #111;
 }
 .gp .gp-panel > .empty {
-  margin-top: clamp(10px, 0.8vw, 14px);
+  margin-top: clamp(10px, calc(0.8 * var(--u)), 14px);
 }
 
 /* ---------- Badges / notices ---------- */
@@ -1024,16 +1038,16 @@ a.stat-card:hover {
 }
 .gp .notice.policy b {
   font-weight: 500;
-  font-size: clamp(15px, 0.94vw, 17px);
+  font-size: clamp(15px, calc(0.94 * var(--u)), 17px);
 }
 .gp .notice.policy p {
-  font-size: clamp(13px, 0.83vw, 15px);
+  font-size: clamp(13px, calc(0.83 * var(--u)), 15px);
   margin-top: 4px;
 }
 
 /* ---------- Projects ---------- */
 .gp .project-grid {
-  margin-top: clamp(10px, 0.8vw, 14px);
+  margin-top: clamp(10px, calc(0.8 * var(--u)), 14px);
   padding: 4px;
 }
 .gp .project-card {
@@ -1053,7 +1067,7 @@ a.stat-card:hover {
 
 /* ---------- Tasks board ---------- */
 .gp .gp-panel .task-board {
-  margin-top: clamp(10px, 0.8vw, 14px);
+  margin-top: clamp(10px, calc(0.8 * var(--u)), 14px);
 }
 .gp .task-column {
   background: #f6f8fc;
@@ -1122,14 +1136,15 @@ a.stat-card:hover {
 .dw-head {
   display: flex;
   align-items: flex-start;
-  gap: clamp(14px, 1.2vw, 22px);
+  gap: clamp(14px, calc(1.2 * var(--u)), 22px);
   background: #ebebfe;
   border-radius: 14px;
-  padding: clamp(14px, 1.2vw, 22px) clamp(14px, 1.2vw, 22px) clamp(18px, 1.4vw, 26px) clamp(12px, 0.8vw, 14px);
+  padding: clamp(14px, calc(1.2 * var(--u)), 22px) clamp(14px, calc(1.2 * var(--u)), 22px)
+    clamp(18px, calc(1.4 * var(--u)), 26px) clamp(12px, calc(0.8 * var(--u)), 14px);
 }
 .dw-icon {
-  width: clamp(62px, 4.3vw, 78px);
-  height: clamp(62px, 4.3vw, 78px);
+  width: clamp(62px, calc(4.3 * var(--u)), 78px);
+  height: clamp(62px, calc(4.3 * var(--u)), 78px);
   border-radius: 12px;
   border: 1px solid #7419ee;
   display: grid;
@@ -1149,7 +1164,7 @@ a.stat-card:hover {
 .dw-eyebrow {
   color: #1d1df0;
   font-weight: 600;
-  font-size: clamp(13px, 0.9vw, 16px);
+  font-size: clamp(13px, calc(0.9 * var(--u)), 16px);
   text-transform: uppercase;
 }
 .dw-eyebrow.overdue {
@@ -1157,13 +1172,13 @@ a.stat-card:hover {
 }
 .dw-head h2 {
   margin: 4px 0 8px;
-  font-size: clamp(20px, 1.44vw, 26px);
+  font-size: clamp(20px, calc(1.44 * var(--u)), 26px);
   font-weight: 600;
   line-height: 1.25;
 }
 .dw-head p {
   margin: 0;
-  font-size: clamp(14px, 0.9vw, 16px);
+  font-size: clamp(14px, calc(0.9 * var(--u)), 16px);
 }
 .dw-side {
   display: flex;
@@ -1188,7 +1203,7 @@ a.stat-card:hover {
   border-radius: 8px;
   background: #d3ccff;
   color: #7a4dff;
-  font-size: clamp(14px, 0.94vw, 17px);
+  font-size: clamp(14px, calc(0.94 * var(--u)), 17px);
   text-transform: capitalize;
   white-space: nowrap;
 }
@@ -1209,10 +1224,11 @@ a.stat-card:hover {
   color: #075bb5;
 }
 .dw-body {
-  margin-top: clamp(10px, 0.9vw, 16px);
+  margin-top: clamp(10px, calc(0.9 * var(--u)), 16px);
   border: 1px solid #ebebf3;
   border-radius: 14px;
-  padding: clamp(14px, 0.8vw, 16px) clamp(14px, 0.8vw, 14px) clamp(14px, 0.8vw, 14px);
+  padding: clamp(14px, calc(0.8 * var(--u)), 16px) clamp(14px, calc(0.8 * var(--u)), 14px)
+    clamp(14px, calc(0.8 * var(--u)), 14px);
 }
 .dw-progress-head {
   display: flex;
@@ -1222,15 +1238,15 @@ a.stat-card:hover {
 }
 .dw-progress-head h3 {
   margin: 0;
-  font-size: clamp(17px, 1.1vw, 20px);
+  font-size: clamp(17px, calc(1.1 * var(--u)), 20px);
   font-weight: 600;
 }
 .dw-progress-head p {
   margin: 2px 0 0;
-  font-size: clamp(13px, 0.83vw, 15px);
+  font-size: clamp(13px, calc(0.83 * var(--u)), 15px);
 }
 .dw-progress-head b {
-  font-size: clamp(15px, 0.9vw, 16px);
+  font-size: clamp(15px, calc(0.9 * var(--u)), 16px);
   font-weight: 600;
   padding-right: 10px;
 }
@@ -1279,7 +1295,7 @@ a.stat-card:hover {
 .dw-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 0 clamp(16px, 1.5vw, 28px);
+  gap: 0 clamp(16px, calc(1.5 * var(--u)), 28px);
   padding: 0 0 0 0;
 }
 .dw-grid > div {
@@ -1292,7 +1308,7 @@ a.stat-card:hover {
   flex-direction: column;
   gap: 8px;
   padding: 0 10px;
-  font-size: clamp(14px, 0.9vw, 16px);
+  font-size: clamp(14px, calc(0.9 * var(--u)), 16px);
   font-weight: 600;
 }
 .dw-field textarea,
@@ -1321,7 +1337,7 @@ a.stat-card:hover {
   min-height: 72px;
 }
 .dw-note {
-  margin-top: clamp(16px, 1.2vw, 22px);
+  margin-top: clamp(16px, calc(1.2 * var(--u)), 22px);
 }
 .dw-actions {
   display: flex;
@@ -1329,7 +1345,7 @@ a.stat-card:hover {
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  padding: clamp(14px, 1.1vw, 18px) 6px 0 10px;
+  padding: clamp(14px, calc(1.1 * var(--u)), 18px) 6px 0 10px;
 }
 .dw-files {
   display: flex;
@@ -1423,7 +1439,8 @@ a.stat-card:hover {
 
 /* ---------- Attendance ---------- */
 .att-card {
-  padding: clamp(20px, 1.8vw, 32px) clamp(14px, 1.2vw, 22px) clamp(18px, 1.9vw, 34px);
+  padding: clamp(20px, calc(1.8 * var(--u)), 32px) clamp(14px, calc(1.2 * var(--u)), 22px)
+    clamp(18px, calc(1.9 * var(--u)), 34px);
 }
 .att-card .gp-card-head {
   padding: 0 10px 16px;
@@ -1431,8 +1448,8 @@ a.stat-card:hover {
 .att-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: clamp(16px, 1.4vw, 24px) 24px;
-  padding: clamp(18px, 1.5vw, 26px) 22px clamp(18px, 1.3vw, 24px);
+  gap: clamp(16px, calc(1.4 * var(--u)), 24px) 24px;
+  padding: clamp(18px, calc(1.5 * var(--u)), 26px) 22px clamp(18px, calc(1.3 * var(--u)), 24px);
   border-bottom: 1px solid var(--gp-line);
 }
 .att-item {
@@ -1452,19 +1469,19 @@ a.stat-card:hover {
 }
 .att-item span:not(.dicon) {
   display: block;
-  font-size: clamp(14px, 0.83vw, 15px);
+  font-size: clamp(14px, calc(0.83 * var(--u)), 15px);
 }
 .att-item b {
   display: block;
   margin-top: 6px;
   font-weight: 400;
-  font-size: clamp(14px, 0.83vw, 15px);
+  font-size: clamp(14px, calc(0.83 * var(--u)), 15px);
 }
 .att-actions {
   display: flex;
   justify-content: flex-end;
   gap: 20px;
-  padding-top: clamp(16px, 1.4vw, 24px);
+  padding-top: clamp(16px, calc(1.4 * var(--u)), 24px);
   flex-wrap: wrap;
 }
 
@@ -1510,13 +1527,63 @@ a.stat-card:hover {
 
 /* ---------- Calendar ---------- */
 .cal-card {
-  padding: clamp(20px, 1.6vw, 28px) clamp(14px, 1.2vw, 22px) clamp(18px, 1.6vw, 30px);
+  padding: clamp(20px, calc(1.6 * var(--u)), 28px) clamp(14px, calc(1.2 * var(--u)), 22px)
+    clamp(18px, calc(1.6 * var(--u)), 30px);
   margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+.cal-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 clamp(14px, calc(1.2 * var(--u)), 22px) 4px;
 }
 .cal-card h3 {
-  margin: 0 0 clamp(16px, 1.4vw, 26px) 4px;
-  font-size: clamp(17px, 1.16vw, 21px);
+  margin: 0;
+  font-size: clamp(17px, calc(1.16 * var(--u)), 21px);
   font-weight: 500;
+}
+.cal-count {
+  min-width: 28px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eef0fe;
+  color: #2f4392;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+.cal-view-all {
+  margin-top: 14px;
+  width: 100%;
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 14px;
+  background: #f0f4fb;
+  color: #1017c9;
+  font-size: clamp(14px, calc(0.9 * var(--u)), 16px);
+  font-weight: 500;
+  cursor: pointer;
+}
+.cal-view-all:hover {
+  background: #e3ebfb;
+}
+.cal-today {
+  display: inline-block;
+  margin-right: 8px;
+  padding: 0 8px;
+  border-radius: 6px;
+  background: #e4f9f1;
+  color: #0b7a4b;
+  font-style: normal;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 20px;
+}
+.cal-modal-list {
+  padding: 18px 20px 22px;
 }
 .cal-list {
   display: grid;
@@ -1526,7 +1593,7 @@ a.stat-card:hover {
   display: flex;
   gap: 14px;
   align-items: center;
-  padding: 12px 14px;
+  padding: clamp(9px, calc(0.66 * var(--u)), 12px) 14px;
   border: 1px solid #e6ebf5;
   border-radius: 12px;
 }
@@ -1552,12 +1619,15 @@ a.stat-card:hover {
   min-width: 0;
 }
 .cal-item strong {
-  display: block;
-  font-weight: 500;
-  font-size: 15px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 500;
+  font-size: clamp(13px, calc(0.83 * var(--u)), 15px);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 .cal-item span {
   font-size: 13px;
@@ -1568,13 +1638,13 @@ a.stat-card:hover {
 .notif-list {
   display: grid;
   gap: 12px;
-  padding: 10px clamp(4px, 0.4vw, 8px) 8px;
+  padding: 10px clamp(4px, calc(0.4 * var(--u)), 8px) 8px;
 }
 .notif-row {
   display: flex;
   align-items: center;
-  gap: clamp(14px, 1.2vw, 22px);
-  padding: 10px clamp(14px, 1.2vw, 22px) 10px 12px;
+  gap: clamp(14px, calc(1.2 * var(--u)), 22px);
+  padding: 10px clamp(14px, calc(1.2 * var(--u)), 22px) 10px 12px;
   border: 2px solid #edf1fd;
   border-radius: 14px;
   background: #fff;
@@ -1589,8 +1659,8 @@ a.stat-card:hover {
   border-color: #d5def8;
 }
 .notif-tile {
-  width: clamp(60px, 4.2vw, 76px);
-  height: clamp(60px, 4.2vw, 76px);
+  width: clamp(60px, calc(4.2 * var(--u)), 76px);
+  height: clamp(60px, calc(4.2 * var(--u)), 76px);
   border-radius: 10px;
   display: grid;
   place-items: center;
@@ -1612,11 +1682,11 @@ a.stat-card:hover {
 }
 .notif-body b {
   font-weight: 500;
-  font-size: clamp(15px, 0.94vw, 17px);
+  font-size: clamp(15px, calc(0.94 * var(--u)), 17px);
 }
 .notif-body p {
   margin: 3px 0 2px;
-  font-size: clamp(13px, 0.83vw, 15px);
+  font-size: clamp(13px, calc(0.83 * var(--u)), 15px);
   color: #555;
 }
 .notif-body small {
@@ -1668,7 +1738,7 @@ a.stat-card:hover {
 }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 1400px) {
+@media (max-width: 1150px) {
   .gp .command-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     row-gap: 18px;

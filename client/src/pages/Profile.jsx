@@ -28,7 +28,7 @@ export default function Profile(){
       e.target.reset();
       toast.success('Password changed');
     }catch(e){
-      toast.error(e.response?.data?.message||'Unable to change password');
+      toast.errorw(e.response?.data?.message||'Unable to change password');
     }
   };
   return <>
