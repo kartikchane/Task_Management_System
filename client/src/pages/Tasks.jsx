@@ -2,10 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import api, { attachmentUrl } from "../api";
 import { useRefresh } from "../hooks";
 import { useAuth } from "../context";
-import { Button, Modal, Field, Badge, Empty, Skeleton } from "../components/UI";
+import { Button, Modal, Field, Badge, Empty, Skeleton, PageHead, DIcon } from "../components/UI";
 import {
   Plus,
-  Search,
+  RefreshCw,
   Calendar,
   MessageSquare,
   Paperclip,
@@ -27,14 +27,7 @@ const tones = {
   "not-applicable": "muted",
   submitted: "purple",
 };
-const columns = [
-  "pending",
-  "in-progress",
-  "submitted",
-  "completed",
-  "overdue",
-  "not-applicable",
-];
+const columns = ["pending", "in-progress", "submitted", "completed", "overdue", "not-applicable"];
 
 export default function Tasks() {
   const { user } = useAuth();
@@ -123,13 +116,9 @@ export default function Tasks() {
       toast.error(e.response?.data?.message || "Unable to update progress");
     }
   };
-  const isAssignee =
-    selected &&
-    String(selected.assignedTo?._id || selected.assignedTo) === String(user.id);
+  const isAssignee = selected && String(selected.assignedTo?._id || selected.assignedTo) === String(user.id);
   const canEditProgress =
-    isAssignee &&
-    selected &&
-    !["completed", "not-applicable", "submitted"].includes(selected.status);
+    isAssignee && selected && !["completed", "not-applicable", "submitted"].includes(selected.status);
   const comment = async (e) => {
     e.preventDefault();
     const text = e.target.text.value;
@@ -205,124 +194,100 @@ export default function Tasks() {
   };
   return (
     <>
-      <div className="page-head">
-        <div>
-          <h1>{user.role === "employee" ? "My Tasks" : "Task Management"}</h1>
-          <p>Assign, execute, submit and review work in one live workflow.</p>
-        </div>
-        {user.role !== "employee" && (
-          <Button variant="primary" onClick={() => setModal(true)}>
-            <Plus />
-            Assign task
-          </Button>
-        )}
-      </div>
-      <div className="toolbar card">
-        <div className="search">
-          <Search />
-          <input
-            value={search}
+      <PageHead
+        title={user.role === "employee" ? "My Tasks" : "Task Management"}
+        subtitle="Assign, execute, submit and review work in one live workflow."
+      />
+      <section className="gp-panel">
+        <div className="gp-toolbar">
+          <div className="search">
+            <DIcon name="magnifying-glass" />
+            <input
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setParams(Object.fromEntries(Object.entries({ status, search: e.target.value }).filter(([, v]) => v)));
+              }}
+              placeholder="Search tasks"
+            />
+          </div>
+          <select
+            value={status}
             onChange={(e) => {
-              setSearch(e.target.value);
-              setParams(
-                Object.fromEntries(
-                  Object.entries({ status, search: e.target.value }).filter(
-                    ([, v]) => v,
-                  ),
-                ),
-              );
+              setStatus(e.target.value);
+              setParams(Object.fromEntries(Object.entries({ status: e.target.value, search }).filter(([, v]) => v)));
             }}
-            placeholder="Search tasks"
-          />
+          >
+            <option value="">All statuses</option>
+            {columns.map((x) => (
+              <option key={x} value={x}>
+                {x.replace("-", " ")}
+              </option>
+            ))}
+          </select>
+          <Button variant="lg" onClick={load}>
+            <RefreshCw className="spin-icon" strokeWidth={2.6} />
+            Refresh
+          </Button>
+          {user.role !== "employee" && (
+            <Button variant="primary lg" onClick={() => setModal(true)}>
+              <Plus />
+              Assign task
+            </Button>
+          )}
         </div>
-        <select
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setParams(
-              Object.fromEntries(
-                Object.entries({ status: e.target.value, search }).filter(
-                  ([, v]) => v,
-                ),
-              ),
-            );
-          }}
-        >
-          <option value="">All statuses</option>
-          {columns.map((x) => (
-            <option key={x} value={x}>
-              {x.replace("-", " ")}
-            </option>
-          ))}
-        </select>
-      </div>
-      {loading ? (
-        <Skeleton />
-      ) : error ? (
-        <Empty title="Unable to load tasks" text={error} />
-      ) : rows.length ? (
-        <div className="task-board">
-          {columns.map((s) => (
-            <section className="task-column" key={s}>
-              <div className="column-head">
-                <b>{s.replace("-", " ")}</b>
-                <span>{rows.filter((x) => x.status === s).length}</span>
-              </div>
-              {rows
-                .filter((x) => x.status === s)
-                .map((x) => (
-                  <article
-                    className="task-card"
-                    key={x._id}
-                    onClick={() => openTask(x)}
-                  >
-                    <div className="row">
-                      <Badge
-                        tone={
-                          x.priority === "critical"
-                            ? "red"
-                            : x.priority === "high"
-                              ? "orange"
-                              : "muted"
-                        }
-                      >
-                        {x.priority}
-                      </Badge>
-                      <small>{x.project?.code}</small>
-                    </div>
-                    <h3>{x.title}</h3>
-                    <p>{x.description}</p>
-                    <div className="progress">
-                      <i style={{ width: x.progress + "%" }} />
-                    </div>
-                    <div className="task-card-foot">
-                      <span>
-                        <Calendar />{" "}
-                        {new Date(x.dueDate).toLocaleDateString("en-IN")}
-                      </span>
-                      <span>
-                        <MessageSquare />
-                        {x.comments?.length || 0}
-                        <Paperclip />
-                        {x.attachments?.length || 0}
-                      </span>
-                    </div>
-                    <div className="assignee">
-                      <div className="avatar">{x.assignedTo?.name?.[0]}</div>
-                      <span>{x.assignedTo?.name}</span>
-                      <ChevronRight />
-                    </div>
-                  </article>
-                ))}
-            </section>
-          ))}
-        </div>
-      ) : (
-        <Empty
-          title="No tasks found"
-          text="Tasks matching your filters will appear here."
-        />
-      )}
+        {loading ? (
+          <Skeleton />
+        ) : error ? (
+          <Empty title="Unable to load tasks" text={error} />
+        ) : rows.length ? (
+          <div className="task-board">
+            {columns.map((s) => (
+              <section className="task-column" key={s}>
+                <div className="column-head">
+                  <b>{s.replace("-", " ")}</b>
+                  <span>{rows.filter((x) => x.status === s).length}</span>
+                </div>
+                {rows
+                  .filter((x) => x.status === s)
+                  .map((x) => (
+                    <article className="task-card" key={x._id} onClick={() => openTask(x)}>
+                      <div className="row">
+                        <Badge tone={x.priority === "critical" ? "red" : x.priority === "high" ? "orange" : "muted"}>
+                          {x.priority}
+                        </Badge>
+                        <small>{x.project?.code}</small>
+                      </div>
+                      <h3>{x.title}</h3>
+                      <p>{x.description}</p>
+                      <div className="progress">
+                        <i style={{ width: x.progress + "%" }} />
+                      </div>
+                      <div className="task-card-foot">
+                        <span>
+                          <Calendar /> {new Date(x.dueDate).toLocaleDateString("en-IN")}
+                        </span>
+                        <span>
+                          <MessageSquare />
+                          {x.comments?.length || 0}
+                          <Paperclip />
+                          {x.attachments?.length || 0}
+                        </span>
+                      </div>
+                      <div className="assignee">
+                        <div className="avatar">{x.assignedTo?.name?.[0]}</div>
+                        <span>{x.assignedTo?.name}</span>
+                        <ChevronRight />
+                      </div>
+                    </article>
+                  ))}
+              </section>
+            ))}
+          </div>
+        ) : (
+          <Empty image="empty-folder" title="No tasks found" text="Tasks matching your filters will appear here." />
+        )}
+      </section>
       {modal && (
         <Modal title="Assign new task" onClose={() => setModal(false)} wide>
           <form onSubmit={create} className="form-grid two">
@@ -354,7 +319,8 @@ export default function Tasks() {
                 <option value="">Select person</option>
                 {people.map((x) => (
                   <option key={x._id} value={x._id}>
-                    {x.name}{x.role === "admin" ? " (Admin)" : ""}
+                    {x.name}
+                    {x.role === "admin" ? " (Admin)" : ""}
                   </option>
                 ))}
               </select>
@@ -385,11 +351,7 @@ export default function Tasks() {
                   ["remark", "Remark"],
                 ].map(([value, label]) => (
                   <label className="row" key={value}>
-                    <input
-                      type="checkbox"
-                      name="completionRequirements"
-                      value={value}
-                    />
+                    <input type="checkbox" name="completionRequirements" value={value} />
                     <span>{label}</span>
                   </label>
                 ))}
@@ -411,9 +373,7 @@ export default function Tasks() {
               <div className="row wrap">
                 <Badge tone={tones[selected.status]}>{selected.status}</Badge>
                 <Badge>{selected.priority} priority</Badge>
-                <span className="muted">
-                  Due {new Date(selected.dueDate).toLocaleDateString("en-IN")}
-                </span>
+                <span className="muted">Due {new Date(selected.dueDate).toLocaleDateString("en-IN")}</span>
               </div>
               <p>{selected.description}</p>
               <h4>Progress - {progressDraft}%</h4>
@@ -426,18 +386,12 @@ export default function Tasks() {
                 onChange={(e) => setProgressDraft(Number(e.target.value))}
                 onMouseUp={() => progress(progressDraft)}
                 onTouchEnd={() => progress(progressDraft)}
-                onKeyUp={(e) =>
-                  ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key) &&
-                  progress(progressDraft)
-                }
+                onKeyUp={(e) => ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key) && progress(progressDraft)}
                 onBlur={() => progress(progressDraft)}
               />
               {selected.completionRequirements?.length > 0 && (
                 <div className="notice warning">
-                  <b>Required to complete:</b>{" "}
-                  {selected.completionRequirements
-                    .join(", ")
-                    .replaceAll("-", " ")}
+                  <b>Required to complete:</b> {selected.completionRequirements.join(", ").replaceAll("-", " ")}
                 </div>
               )}
               <div className="detail-section">
@@ -472,14 +426,9 @@ export default function Tasks() {
                         <div>
                           <b>{h.message || h.action}</b>
                           <p>
-                            {h.actor?.name || "System"}{" "}
-                            {h.from && h.to
-                              ? `changed ${h.from} to ${h.to}`
-                              : ""}
+                            {h.actor?.name || "System"} {h.from && h.to ? `changed ${h.from} to ${h.to}` : ""}
                           </p>
-                          <small>
-                            {new Date(h.createdAt).toLocaleString("en-IN")}
-                          </small>
+                          <small>{new Date(h.createdAt).toLocaleString("en-IN")}</small>
                         </div>
                       </div>
                     ))
@@ -504,39 +453,41 @@ export default function Tasks() {
                 <div className="stack-fields">
                   {selected.attachments.map((a) => (
                     <a key={a._id} href={attachmentUrl(a)} target="_blank" rel="noreferrer" className="btn full">
-                      <Paperclip />{a.name}
+                      <Paperclip />
+                      {a.name}
                     </a>
                   ))}
                 </div>
               )}
-              {isAssignee &&
-                !["completed", "not-applicable", "submitted"].includes(selected.status) && (
-                  <label className="upload">
-                    <Upload />
-                    Upload attachment
-                    <input type="file" onChange={attach} />
-                  </label>
-                )}
-              {isAssignee &&
-                !["completed", "not-applicable", "submitted"].includes(selected.status) && (
-                  <form onSubmit={submit} className="review-box">
-                    <textarea
-                      name="note"
-                      placeholder="Submission note for your manager (optional)"
-                    />
-                    <Button variant="primary full">
-                      <CheckCircle2 />
-                      Submit for review
-                    </Button>
-                  </form>
-                )}
+              {isAssignee && !["completed", "not-applicable", "submitted"].includes(selected.status) && (
+                <label className="upload">
+                  <Upload />
+                  Upload attachment
+                  <input type="file" onChange={attach} />
+                </label>
+              )}
+              {isAssignee && !["completed", "not-applicable", "submitted"].includes(selected.status) && (
+                <form onSubmit={submit} className="review-box">
+                  <textarea name="note" placeholder="Submission note for your manager (optional)" />
+                  <Button variant="primary full">
+                    <CheckCircle2 />
+                    Submit for review
+                  </Button>
+                </form>
+              )}
               {isAssignee && selected.status === "submitted" && (
                 <div className="notice">
                   <p>Waiting for your manager to review this task.</p>
                 </div>
               )}
               {!isAssignee && user.role !== "employee" && selected.status === "submitted" && (
-                <form className="review-box" onSubmit={(e) => { e.preventDefault(); review("approved", e.target); }}>
+                <form
+                  className="review-box"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    review("approved", e.target);
+                  }}
+                >
                   <textarea name="note" placeholder="Feedback for employee" />
                   <div className="form-grid two" style={{ padding: 0 }}>
                     <input name="quality" type="number" min="0" max="5" placeholder="Quality (0-5)" />
@@ -575,11 +526,7 @@ export default function Tasks() {
               )}
               {user.role !== "employee" && (
                 <div className="review-box">
-                  <Button
-                    type="button"
-                    className="btn full"
-                    onClick={removeTask}
-                  >
+                  <Button type="button" className="btn full" onClick={removeTask}>
                     <Trash2 />
                     Delete task
                   </Button>
