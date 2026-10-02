@@ -5,7 +5,6 @@ import {
   ClipboardList,
   ClipboardCheck,
   ShieldCheck,
-  BarChart3,
   Settings,
   Menu,
   X,
@@ -33,7 +32,7 @@ const links = [
   ["/leave", "Leave", "airplane"],
   ["/calendar", "Calendar", "calendar"],
   ["/tasks", "Additional Tasks", "clipboard-check"],
-  ["/reports", "Reports", BarChart3, ["superadmin", "admin"]],
+  ["/reports", "Reports", "analysis", ["superadmin", "admin"]],
   ["/notifications", "Notifications", "bell"],
   ["/audit", "Audit Logs", ShieldCheck, ["superadmin"]],
   ["/settings", "Settings", Settings, ["superadmin"]],
@@ -80,7 +79,11 @@ export default function Layout() {
     document.addEventListener("mousedown", close);
     return () => document.removeEventListener("mousedown", close);
   }, [menu]);
-  useEffect(() => setMenu(false), [location.pathname]);
+  useEffect(() => {
+    setMenu(false);
+    // keep the current page's link visible when the sidebar list is long enough to scroll
+    document.querySelector(".sidebar nav a.active")?.scrollIntoView({ block: "nearest" });
+  }, [location.pathname]);
   const dismissAssignPopup = () => {
     const ids = assignPopup.map((x) => x._id);
     setAssignPopup([]);

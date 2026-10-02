@@ -103,10 +103,12 @@ export function PageHead({ title, subtitle, children, date = true }) {
  * Stat card with the coloured side bar + tinted icon tile.
  * tone: blue | green | orange | purple | red
  * icon: a DIcon name (string) or any React element
+ * ghost: optional DIcon name shown large and faint on the right side of the card
  */
-export function StatCard({ label, value, sub = "Live data", icon, tone = "blue", to }) {
+export function StatCard({ label, value, sub = "Live data", icon, tone = "blue", to, ghost }) {
   const body = (
     <>
+      {ghost && <DIcon name={ghost} className="stat-ghost" />}
       <i className="stat-bar" />
       <div className="stat-tile">{typeof icon === "string" ? <DIcon name={icon} /> : icon}</div>
       <div className="stat-text">

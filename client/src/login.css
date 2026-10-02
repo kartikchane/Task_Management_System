@@ -1,0 +1,510 @@
+/* ==========================================================================
+   Login page — built from the designer's "Login-page" screen (1806 x 1080).
+   Used only by pages/Login.jsx. Images live in /public/design/login.
+
+   --lu  = one design pixel. It shrinks with BOTH the window width and height,
+           so the whole left artwork always fits on the screen.
+   --cu  = same, but never smaller than 0.62px so the form stays readable.
+   Sizes are written as calc(N * var(--lu)) where N is the size in the design.
+   ========================================================================== */
+.lg {
+  --lu: min(calc(100vw / 1806), calc(100vh / 1080));
+  --cu: max(var(--lu), 0.62px);
+  position: relative;
+  display: flex;
+  min-height: 100vh;
+  overflow: hidden;
+  font-family: "Poppins", system-ui, sans-serif;
+  color: #000;
+  background: #6fa5e8 url(/design/login/bg.jpg) 50% 42% / cover no-repeat;
+}
+.lg *,
+.lg *::before {
+  box-sizing: border-box;
+}
+.lg h1,
+.lg h2,
+.lg b,
+.lg button,
+.lg input,
+.lg select {
+  font-family: inherit;
+}
+
+/* ---------- bottom waves ---------- */
+.lg-wave {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: calc(330 * var(--lu));
+  pointer-events: none;
+}
+
+/* ---------- left artwork ---------- */
+.lg-hero {
+  position: relative;
+  flex: 0 0 calc(1110 * var(--lu));
+  min-height: 100vh;
+}
+.lg-logo {
+  position: absolute;
+  left: calc(79 * var(--lu));
+  top: calc(32 * var(--lu));
+  width: calc(360 * var(--lu));
+  height: auto;
+  filter: drop-shadow(0 0 calc(12 * var(--lu)) rgba(255, 255, 255, 0.85))
+    drop-shadow(0 0 calc(28 * var(--lu)) rgba(255, 255, 255, 0.6));
+}
+.lg-hero h1 {
+  position: absolute;
+  left: calc(82 * var(--lu));
+  top: calc(140 * var(--lu));
+  margin: 0;
+  font-size: calc(80.5 * var(--lu));
+  line-height: calc(75 * var(--lu));
+  font-weight: 700;
+  letter-spacing: 0;
+  color: #069df2;
+  white-space: nowrap;
+  /* soft white glow so the words stay readable on the photo (a filter is painted
+     behind the whole block, so one line's glow never washes out the line above) */
+  filter: drop-shadow(0 0 calc(10 * var(--lu)) #fff) drop-shadow(0 0 calc(22 * var(--lu)) #fff)
+    drop-shadow(0 0 calc(40 * var(--lu)) rgba(255, 255, 255, 0.95));
+}
+.lg-hero h1 span {
+  color: #2f4392;
+}
+.lg-hero > p {
+  position: absolute;
+  left: calc(82 * var(--lu));
+  top: calc(392 * var(--lu));
+  width: calc(520 * var(--lu));
+  margin: 0;
+  font-size: calc(21.5 * var(--lu));
+  line-height: calc(29 * var(--lu));
+  color: #000;
+  filter: drop-shadow(0 0 calc(8 * var(--lu)) #fff) drop-shadow(0 0 calc(18 * var(--lu)) #fff)
+    drop-shadow(0 0 calc(34 * var(--lu)) #fff);
+}
+.lg-stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.lg-podium {
+  position: absolute;
+  left: calc(50 * var(--lu));
+  bottom: calc(104 * var(--lu));
+  width: calc(990 * var(--lu));
+  height: calc(134 * var(--lu));
+}
+.lg-products {
+  position: absolute;
+  left: calc(66 * var(--lu));
+  bottom: calc(146 * var(--lu));
+  width: calc(958 * var(--lu));
+  height: auto;
+  filter: saturate(1.12) contrast(1.04) drop-shadow(0 calc(10 * var(--lu)) calc(14 * var(--lu)) rgba(10, 30, 90, 0.28));
+}
+.lg-features {
+  position: absolute;
+  left: calc(35 * var(--lu));
+  bottom: calc(49 * var(--lu));
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #fff;
+}
+.lg-features li {
+  display: flex;
+  align-items: center;
+  gap: calc(14 * var(--lu));
+  font-size: calc(19.5 * var(--lu));
+  line-height: calc(22 * var(--lu));
+}
+.lg-features li:nth-child(1) {
+  width: calc(282 * var(--lu));
+}
+.lg-features li:nth-child(2) {
+  width: calc(261 * var(--lu));
+}
+.lg-features li:nth-child(3) {
+  width: calc(268 * var(--lu));
+}
+.lg-features i {
+  width: calc(78 * var(--lu));
+  height: calc(78 * var(--lu));
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: calc(2 * var(--lu)) solid rgba(255, 255, 255, 0.55);
+}
+.lg-features i .dicon,
+.lg-features i svg {
+  width: 54%;
+  height: 54%;
+}
+
+/* ---------- right side: the card ---------- */
+.lg-panel {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  padding: 16px calc(38 * var(--lu)) 16px calc(3 * var(--lu));
+}
+.lg-card {
+  position: relative;
+  margin: auto;
+  width: min(100%, calc(655 * var(--cu)));
+  padding: calc(56 * var(--cu)) calc(56 * var(--cu)) calc(50 * var(--cu)) calc(55 * var(--cu));
+  background: #fff;
+  border-radius: calc(26 * var(--cu));
+  box-shadow: 0 calc(24 * var(--cu)) calc(70 * var(--cu)) rgba(9, 30, 90, 0.22);
+  overflow: hidden;
+}
+.lg-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: calc(14 * var(--cu));
+  background: linear-gradient(90deg, #3b40ef 0%, #364dec 30%, #3da384 55%, #e19802 80%);
+}
+.lg-card-logo {
+  display: none;
+}
+.lg-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+.lg-tile {
+  width: calc(78 * var(--cu));
+  height: calc(76 * var(--cu));
+  border-radius: calc(18 * var(--cu));
+  background: #edecfd;
+  color: #484deb;
+  display: grid;
+  place-items: center;
+}
+.lg-tile svg,
+.lg-tile .dicon {
+  width: calc(40 * var(--cu));
+  height: calc(40 * var(--cu));
+}
+.lg-secure {
+  margin-top: calc(12 * var(--cu));
+  display: inline-flex;
+  align-items: center;
+  gap: calc(12 * var(--cu));
+  height: calc(46 * var(--cu));
+  padding: 0 calc(14 * var(--cu)) 0 calc(18 * var(--cu));
+  border-radius: 999px;
+  background: #f6f8fc;
+  border: 1px solid #e1e5ee;
+  color: #626d85;
+  font-size: max(11.5px, calc(17 * var(--cu)));
+  white-space: nowrap;
+}
+.lg-secure .dicon {
+  width: calc(24 * var(--cu));
+  height: calc(24 * var(--cu));
+}
+.lg-card h2 {
+  margin: calc(27 * var(--cu)) 0 0;
+  font-size: max(24px, calc(43 * var(--cu)));
+  line-height: 1.2;
+  font-weight: 700;
+  color: #000;
+}
+.lg-sub {
+  margin: calc(7 * var(--cu)) 0 0;
+  font-size: max(13px, calc(22.5 * var(--cu)));
+  line-height: 1.2;
+  color: #626d85;
+}
+.lg-field {
+  display: block;
+  margin-top: calc(24 * var(--cu));
+}
+.lg-sub + .lg-field {
+  margin-top: calc(44 * var(--cu));
+}
+.lg-field > span {
+  display: block;
+  font-size: max(12.5px, calc(19 * var(--cu)));
+  font-weight: 600;
+  line-height: 1.3;
+}
+.lg-input {
+  margin: calc(12 * var(--cu)) 0 0 calc(3 * var(--cu));
+  height: calc(64 * var(--cu));
+  display: flex;
+  align-items: center;
+  border: 1.5px solid #e0e2e8;
+  border-radius: calc(8 * var(--cu));
+  background: #fff;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+.lg-input:focus-within {
+  border-color: #6f8cf5;
+  box-shadow: 0 0 0 3px rgba(44, 98, 236, 0.14);
+}
+.lg-input-icon {
+  flex: 0 0 auto;
+  width: calc(64 * var(--cu));
+  display: grid;
+  place-items: center;
+  color: #626d85;
+}
+.lg-input-icon .dicon,
+.lg-input-icon svg {
+  width: calc(28 * var(--cu));
+  height: calc(28 * var(--cu));
+}
+.lg-input input,
+.lg-input select {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 0 calc(10 * var(--cu));
+  font-size: max(12.5px, calc(18.5 * var(--cu)));
+  color: #111;
+}
+.lg-input input::placeholder {
+  color: #7c8295;
+}
+.lg-eye {
+  flex: 0 0 auto;
+  width: calc(70 * var(--cu));
+  height: 100%;
+  border: 0;
+  background: none;
+  color: #626d85;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.lg-eye svg {
+  width: calc(32 * var(--cu));
+  height: calc(32 * var(--cu));
+}
+.lg-note {
+  margin-top: calc(18 * var(--cu));
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(14 * var(--cu)) calc(18 * var(--cu));
+  border-radius: calc(10 * var(--cu));
+  background: #eef3ff;
+  color: #2f4392;
+  font-size: max(12.5px, calc(17 * var(--cu)));
+}
+.lg-note svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+.lg-row {
+  margin-top: calc(20 * var(--cu));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.lg-check {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(13 * var(--cu));
+  font-size: max(12.5px, calc(18 * var(--cu)));
+  cursor: pointer;
+  user-select: none;
+}
+.lg-check input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+.lg-check i {
+  width: calc(29 * var(--cu));
+  height: calc(29 * var(--cu));
+  border: 2px solid #484deb;
+  border-radius: calc(8 * var(--cu));
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+}
+.lg-check input:checked + i {
+  background: #484deb;
+}
+.lg-check input:checked + i::after {
+  content: "";
+  width: 28%;
+  height: 52%;
+  margin-top: -12%;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  rotate: 45deg;
+}
+.lg-check input:focus-visible + i {
+  box-shadow: 0 0 0 3px rgba(72, 77, 235, 0.25);
+}
+.lg-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  color: #103edf;
+  font-size: max(12.5px, calc(18.5 * var(--cu)));
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.lg-submit {
+  margin: calc(28 * var(--cu)) 0 0 calc(3 * var(--cu));
+  width: calc(100% - 3 * var(--cu));
+  height: calc(64 * var(--cu));
+  border: 0;
+  border-radius: calc(7 * var(--cu));
+  background: #2c62ec;
+  color: #fff;
+  font-size: max(15px, calc(25 * var(--cu)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(18 * var(--cu));
+  cursor: pointer;
+  box-shadow: 0 calc(8 * var(--cu)) calc(26 * var(--cu)) rgba(44, 98, 236, 0.38);
+  transition:
+    background 0.15s,
+    transform 0.15s;
+}
+.lg-submit:hover {
+  background: #2456dc;
+}
+.lg-submit:active {
+  transform: translateY(1px);
+}
+.lg-submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+.lg-submit .dicon {
+  width: calc(32 * var(--cu));
+  height: calc(32 * var(--cu));
+}
+.lg-hint {
+  margin: calc(16 * var(--cu)) 0 0;
+  text-align: center;
+  font-size: max(12.5px, calc(17 * var(--cu)));
+  color: #626d85;
+}
+.lg-hint a {
+  color: #103edf;
+  text-decoration: underline;
+}
+.lg-or {
+  margin: calc(19 * var(--cu)) 0 calc(38 * var(--cu)) calc(3 * var(--cu));
+  display: flex;
+  align-items: center;
+  gap: calc(20 * var(--cu));
+  color: #858585;
+  font-size: max(14px, calc(24 * var(--cu)));
+  line-height: 1.25;
+}
+.lg-or::before,
+.lg-or::after {
+  content: "";
+  flex: 1;
+  border-top: 2px solid #d0d2e5;
+  margin-top: 0.2em;
+}
+.lg-alt {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: calc(19 * var(--cu));
+}
+.lg-alt button,
+.lg-chip {
+  height: calc(60 * var(--cu));
+  min-width: 0;
+  border: 2px solid #d0d2e5;
+  border-radius: calc(14 * var(--cu));
+  background: #fff;
+  font-size: max(12px, calc(17 * var(--cu)));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(8 * var(--cu));
+  white-space: nowrap;
+}
+.lg-alt button {
+  color: #172cb4;
+  cursor: pointer;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+.lg-alt button:hover {
+  border-color: #9aa8ff;
+  background: #f6f8ff;
+}
+.lg-chip {
+  color: #52526c;
+  overflow: hidden;
+  padding: 0 6px;
+}
+.lg-chip .dicon {
+  width: calc(24 * var(--cu));
+  height: calc(24 * var(--cu));
+  color: #33aba4;
+  flex: 0 0 auto;
+}
+
+/* ---------- tablets and phones: only the card, on the photo ---------- */
+@media (max-width: 1100px) {
+  .lg {
+    --cu: 0.74px;
+  }
+  .lg-hero {
+    display: none;
+  }
+  .lg-wave {
+    height: 110px;
+  }
+  .lg-panel {
+    padding: 18px 14px;
+  }
+  .lg-card {
+    width: min(100%, 480px);
+  }
+  .lg-card-logo {
+    display: block;
+    width: min(210px, 60%);
+    height: auto;
+    margin: 0 auto calc(30 * var(--cu));
+  }
+}
+@media (max-width: 420px) {
+  .lg {
+    --cu: 0.66px;
+  }
+  .lg-card {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
