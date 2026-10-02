@@ -530,6 +530,14 @@ body:has(.gp) {
 .gp .grid > * {
   min-width: 0;
 }
+/* a filter bar / table / list that comes right after a row of cards needs the same gap as the cards */
+.gp .grid + .toolbar,
+.gp .grid + .table-wrap,
+.gp .grid + .card,
+.gp .grid + .empty,
+.gp .grid + .daily-grid {
+  margin-top: clamp(14px, calc(1.1 * var(--u)), 20px);
+}
 .stat-card {
   position: relative;
   display: flex;
