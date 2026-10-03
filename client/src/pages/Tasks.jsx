@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import api, { attachmentUrl } from "../api";
+import api, { attachmentUrl, escapeRegex } from "../api";
 import { useRefresh } from "../hooks";
 import { useAuth } from "../context";
 import { Button, Modal, Field, Badge, Empty, Skeleton, PageHead, DIcon } from "../components/UI";
@@ -54,7 +54,7 @@ export default function Tasks() {
     setLoading(true);
     setError("");
     return Promise.all([
-      api.get("/tasks", { params: { status, search, limit: 100 } }),
+      api.get("/tasks", { params: { status, search: escapeRegex(search), limit: 100 } }),
       api.get("/projects"),
       ...(user.role !== "employee"
         ? [

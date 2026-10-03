@@ -14,9 +14,10 @@ import {
   LogOut,
 } from "lucide-react";
 import { useAuth } from "../context";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import api from "../api";
 import { Modal, Badge, Button, DIcon, initials, roleLabel } from "./UI";
+import GlobalSearch from "./GlobalSearch";
 
 // [path, label, icon, roles]
 // icon: a string = designer icon from /public/design/icons, otherwise a lucide icon component
@@ -52,6 +53,9 @@ export default function Layout() {
   const seenIds = useRef(new Set());
   const menuRef = useRef(null);
   const location = useLocation();
+  // sidebar links this role is allowed to see (also used by the header search)
+  const visibleLinks = useMemo(() => links.filter((x) => !x[3] || x[3].includes(user.role)), [user.role]);
+  const searchLinks = useMemo(() => [...visibleLinks, ["/profile", "My Profile"]], [visibleLinks]);
   const title =
     links.find((x) => x[0] === location.pathname)?.[1] || extraTitles[location.pathname] || "Ganesh Gauri Industries";
   const loadUnread = useCallback(
@@ -116,14 +120,12 @@ export default function Layout() {
           Industries
         </div>
         <nav>
-          {links
-            .filter((x) => !x[3] || x[3].includes(user.role))
-            .map(([to, label, icon]) => (
-              <NavLink end={to === "/"} key={to} to={to} onClick={() => setOpen(false)}>
-                <NavIcon icon={icon} />
-                <span>{label}</span>
-              </NavLink>
-            ))}
+          {visibleLinks.map(([to, label, icon]) => (
+            <NavLink end={to === "/"} key={to} to={to} onClick={() => setOpen(false)}>
+              <NavIcon icon={icon} />
+              <span>{label}</span>
+            </NavLink>
+          ))}
         </nav>
         <div className="sidebar-user">
           <NavLink to="/profile" className="user-row" onClick={() => setOpen(false)}>
@@ -149,10 +151,7 @@ export default function Layout() {
             <h2>{title}</h2>
           </div>
           <div className="header-actions">
-            <div className="search">
-              <DIcon name="magnifying-glass" />
-              <input placeholder="Search workspace..." />
-            </div>
+            <GlobalSearch links={searchLinks} />
             <NavLink className="icon notif-button" to="/notifications" aria-label="Notifications">
               <DIcon name="bell" />
               {unread > 0 && <span className="notif-badge">{unread > 9 ? "9+" : unread}</span>}

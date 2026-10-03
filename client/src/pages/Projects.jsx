@@ -1,4 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import api from "../api";
 import { useRefresh } from "../hooks";
 import { useAuth } from "../context";
@@ -13,10 +14,15 @@ export default function Projects() {
     [people, setPeople] = useState([]),
     [modal, setModal] = useState(false),
     [edit, setEdit] = useState(null);
-  const [search, setSearch] = useState(""),
+  const [params] = useSearchParams();
+  const [search, setSearch] = useState(params.get("search") || ""),
     [status, setStatus] = useState(""),
     [loading, setLoading] = useState(true),
     [error, setError] = useState("");
+  // the header search opens this page with ?search=<name>
+  useEffect(() => {
+    setSearch(params.get("search") || "");
+  }, [params]);
   const load = useCallback(() => {
     setLoading(true);
     setError("");
