@@ -1,0 +1,61 @@
+{
+  "expo": {
+    "name": "Gouri TaskFlow",
+    "slug": "ggi-taskflow",
+    "owner": "gouri_aqua_plast",
+    "scheme": "gouritaskflow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#2f4392",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.ganeshgauri.taskflow"
+    },
+    "android": {
+      "package": "com.ganeshgauri.taskflow",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png",
+        "backgroundColor": "#2f4392"
+      },
+      "softwareKeyboardLayoutMode": "resize",
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
+          "backgroundColor": "#2f4392"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Gouri TaskFlow to pick a photo for your profile or as proof for a task.",
+          "cameraPermission": "Allow Gouri TaskFlow to take a photo for your profile or as proof for a task."
+        }
+      ],
+      "@react-native-community/datetimepicker"
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0913111c-b87c-43fd-8d3d-d1b8022d8228"
+      }
+    }
+  }
+}

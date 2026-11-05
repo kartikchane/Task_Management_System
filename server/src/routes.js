@@ -13,6 +13,8 @@ r.post('/auth/otp/verify',validateBody(schemas.otpVerify),asyncHandler(async(req
 r.get('/auth/me',protect,asyncHandler(async(req,res)=>res.json(cleanUser(req.user))));
 r.patch('/auth/profile',protect,validateBody(schemas.profile),asyncHandler(async(req,res)=>{for(const k of ['name','phone','designation','skills'])if(req.body[k]!==undefined)req.user[k]=req.body[k];await req.user.save();res.json(cleanUser(req.user))}));
 r.patch('/auth/password',protect,validateBody(schemas.password),asyncHandler(async(req,res)=>{const u=await User.findById(req.user._id).select('+password');if(!await bcrypt.compare(req.body.currentPassword||'',u.password)){res.status(400);throw new Error('Current password is incorrect')}u.password=await bcrypt.hash(req.body.newPassword,12);await u.save();res.json({message:'Password changed'})}));
+// Profile photo upload (used by the mobile app). Images only; stored like other attachments.
+r.post('/auth/avatar',protect,upload.single('file'),asyncHandler(async(req,res)=>{if(!req.file||!/^image\//.test(req.file.mimetype||'')){res.status(400);throw new Error('Choose an image file')}let url;if(process.env.UPLOAD_PROVIDER==='cloudinary'){const r=await uploadAttachment(req.file);url=r.secure_url}else{const fn=`${crypto.randomBytes(16).toString('hex')}${path.extname(req.file.originalname||'')||'.jpg'}`;fs.writeFileSync(path.join(uploadDir,fn),req.file.buffer);url='/uploads/'+fn}req.user.avatar=url;await req.user.save();res.json(cleanUser(req.user))}));
 r.use(protect);
 r.get('/dashboard',asyncHandler(async(req,res)=>{
   const scope=scopeFilter(req);
