@@ -8,7 +8,7 @@ let base = DEFAULT_API;
 let token = null;
 let onUnauthorized = () => {};
 
-const api = axios.create({ timeout: 25000 });
+const api = axios.create({ timeout: 70000 });
 api.interceptors.request.use((c) => {
   c.baseURL = base;
   if (token) c.headers.Authorization = `Bearer ${token}`;
